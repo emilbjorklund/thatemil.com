@@ -78,6 +78,9 @@ pre {
 	margin: 0;
 	padding: 0;
 }
+main,article,section,header,footer,figure,figcaption {
+	display: block;
+}
 
 /* hack to fix whitespace problem with comma separated lists on multiple lines... */
 .comma {
