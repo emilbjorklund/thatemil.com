@@ -1,3 +1,4 @@
 .DS_Store
 /system/resources
 /system/.DS_Store
+/system/config/config.php
