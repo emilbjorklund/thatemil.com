@@ -1,0 +1,50 @@
+<article class="entry entry-single flow wf">
+    <header class="entry-header">
+        <h1 class="hd-entry"><perch:blog id="postTitle" type="text" size="xl" /></h1>
+        <p class="entry-meta entry-date">
+            <time datetime="<perch:blog id="postDateTime" format="%Y-%m-%dT%H:%M+01:00" />">
+            Published on <a class="entry-month" rel="directory" href="/blog/<perch:blog id="postDateTime" format="%Y/%m/%d" />/"><perch:blog id="postDateTime" format="%d" /></a> <a class="entry-day" rel="directory" href="/blog/<perch:blog id="postDateTime" format="%Y/%m" />/"><perch:blog id="postDateTime" format="%B" /></a>, <a rel="directory" class="entry-year" href="/blog/<perch:blog id="postDateTime" format="%Y" />/"><perch:blog id="postDateTime" format="%Y" /></a>, at <perch:blog id="postDateTime" format="%H:%M %p" />
+            </time> 
+        </p>
+    </header>
+	
+    <section class="entry-body">
+        <perch:blog id="image" type="image" label="Image" quality="55" suppress="true" />
+        <perch:if exists="image">
+        <figure class="entry-figure">
+
+            <div data-picture data-alt="<perch:blog id="postImageAlt" label="Image alt-text" />">
+                    <div data-src="<perch:blog id="image" type="image" width="640" quality="30" />"></div>
+                    <div data-src="<perch:blog id="image" type="image" width="800" quality="30" />"     data-media="(min-width: 400px)"></div>
+                    <div data-src="<perch:blog id="image" type="image" width="1500" quality="30" />"      data-media="(min-width: 750px)"></div>
+
+                    <!-- Fallback content for non-JS browsers. Same img src as the initial, unqualified source element. -->
+                    <noscript>
+                        <img src="<perch:blog id="image" type="image" width="320" quality="30" />" alt="<perch:blog id="postImageAlt" />" />
+                    </noscript>
+                </div>
+            
+        </figure>
+        </perch:if>
+
+        <perch:if exists="postLedeHTML">
+        <div class="lede">
+            <perch:blog label="Lede text" order="1" id="postLedeHTML" type="textarea" encode="false" editor="markitup" markdown="true" size="s" />
+        </div>
+        </perch:if>
+
+        <perch:blog id="postDescHTML" order="2" type="textarea" encode="false" editor="markitup" markdown="true" size="xxl" />
+    </section>
+
+    <footer class="entry-footer">
+        <perch:if exists="blog_post_categories">
+        <perch:blog id="blog_post_categories" /> 
+        </perch:if>
+        <perch:blog id="postTags" />
+        
+        <p class="entry-meta">If you'd like to continue the conversation elsewhere: follow me on <a href="http://twitter.com/thatemil" rel="me">Twitter (@thatemil)</a> (or, <a href="http://twitter.com/emilbjorklund" hreflang="sv">sporadically in Swedish as @emilbjorklund</a>) or send an email to emil at this domain.</p>
+    </footer>
+    
+</article>
+
+<perch:blog id="excerpt" type="textarea" label="Excerpt" markdown="true" order="3" suppress="true" size="s" />

@@ -1,0 +1,90 @@
+<?php
+    # Side panel
+    echo $HTML->side_panel_start();
+
+    echo $HTML->para('You can edit your post here. Set the status to Published to make the post visible on the website.');
+    echo $HTML->para('If a post has a date in the future, it will not appear on the site until that date and time.');
+    
+    echo $HTML->side_panel_end();
+    
+    
+    # Main panel
+    echo $HTML->main_panel_start(); 
+    
+    include('_subnav.php');
+		
+        if (is_object($Post)) {
+            echo $HTML->heading1('Editing Post ‘%s’', $Post->postTitle());
+        }else{
+            echo $HTML->heading1('Creating a New Post');
+        }
+    
+    
+
+        if ($message) echo $message;    
+        
+        $template_help_html = $Template->find_help();
+        if ($template_help_html) {
+            echo $HTML->heading2('Help');
+            echo '<div id="template-help">' . $template_help_html . '</div>';
+        }
+    
+        echo $HTML->heading2('Post');
+    
+            echo $Form->form_start('blog-edit', 'magnetic-save-bar');
+    
+            echo $Form->text_field('postTitle', 'Title', isset($details['postTitle'])?$details['postTitle']:false, 'xl');
+
+    		echo $Form->textarea_field('postDescRaw', 'Post', isset($details['postDescRaw'])?$details['postDescRaw']:false, '', $Template->find_tag('postDescHTML'));
+		
+    		echo $Form->fields_from_template($Template, $details, $Blog->static_fields);
+                       
+
+        
+        echo $HTML->heading2('Meta information');
+
+
+            echo $Form->date_field('postDateTime', 'Date', isset($details['postDateTime'])?$details['postDateTime']:false, true);
+
+            $values = array();
+            $opts   = array();
+            if(is_array($categories)) {
+                foreach($categories as $Category) {
+                    PerchUtil::debug($Category);
+                    $opts[] = array('label'=>$Category->categoryTitle(),'value'=>$Category->id());
+                }
+
+                echo $Form->checkbox_set('cat_ids', 'Categories', $opts, isset($details['cat_ids'])?$details['cat_ids']:array());
+            }
+            
+
+            echo $Form->hint('Separate with commas');
+            echo $Form->text_field('postTags', 'Tags', isset($details['postTags'])?$details['postTags']:false);
+
+            if ($CurrentUser->has_priv('perch_blog.comments.enable')) {
+                echo $Form->checkbox_field('postAllowComments', 'Allow comments', '1', isset($details['postAllowComments'])?$details['postAllowComments']:'1');
+            }
+            
+            
+            
+            $opts = array();
+            $opts[] = array('label'=>'Draft', 'value'=>'Draft');
+            if ($CurrentUser->has_priv('perch_blog.post.publish')) $opts[] = array('label'=>'Published', 'value'=>'Published');
+         
+
+
+            echo $Form->select_field('postStatus', 'Status', $opts, isset($details['postStatus'])?$details['postStatus']:'Published');
+
+
+
+            echo $Form->hidden('postID', isset($details['postID'])?$details['postID']:false);
+
+            echo $Form->submit_field('btnSubmit', 'Save', $API->app_path());
+
+
+            echo $Form->form_end();
+        
+    echo $HTML->main_panel_end();
+
+    
+?>

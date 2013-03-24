@@ -1,0 +1,28 @@
+<li class="entry">
+    
+    <h2 class="hd-entry wf"><a href="<perch:blog id="postURL" />" rel="bookmark" class="entry-title"><perch:blog id="postTitle" /></a></h2>
+
+    <p class="entry-date entry-meta wf"><time datetime="<perch:blog id="postDateTime" format="%Y-%m-%dT%H:%M+01:00" />"><perch:blog id="postDateTime" format="%d %B %Y" /></time></p>
+    
+    <div class="entry-summary entry-body wf">
+    
+    <perch:if exists="image">
+    <figure class="entry-figure">
+    <img src="<perch:blog id="image" type="image" width="800" crop="false" />" alt="<perch:blog id="postTitle" />" />
+    </figure>
+    </perch:if>
+    
+    <perch:if exists="excerpt">
+    <perch:blog id="excerpt" type="textarea" textile="true" />
+    <p><a href="<perch:blog id="postURL" />">Read the whole post &quot;<perch:blog id="postTitle" />&quot;</a></p>
+    
+    <perch:else />
+    <perch:if exists="postLedeHTML">
+    <div class="lede">
+        <perch:blog id="postLedeHTML" type="textarea" textile="true" />
+    </div>
+    </perch:if>
+    <perch:blog id="postDescHTML" type="textarea" textile="true" />
+    </perch:if>
+    </div>
+</li>

@@ -1,0 +1,23 @@
+<perch:before>
+<section>
+<ul class="entry-list wf ui-list"></perch:before>
+    <perch:template path="blog/post_list_items.html" />
+<perch:after>
+    </ul>
+
+
+    <perch:if exists="paging">
+        <div class="paging wf">
+            <perch:if id="number_of_pages" match="gt" value="1">
+            Page <perch:blog id="current_page" /> of <perch:blog id="number_of_pages" />
+            </perch:if>
+            <perch:if exists="not_first_page">
+                <a href="<perch:blog id="prev_url" encode="false" />">Previous</a>
+            </perch:if>
+            <perch:if exists="not_last_page">
+                <a href="<perch:blog id="next_url" encode="false" />">Next</a>
+            </perch:if>
+        </div>
+    </perch:if>
+    </section>
+</perch:after>

@@ -1,0 +1,496 @@
+html {
+	font-size: 112.5%;
+}
+body {
+	color: #322c2a;
+	margin: 0;
+	padding: 0;
+	font-family: Poly, Constantia, "Lucida Bright", Lucidabright, Lucida, georgia, serif;
+	font-size: 100%;
+}
+/* Increase base font size when viewport gets wider: */
+@media screen and (min-width: 56em) {
+	html {
+		font-size: 137.5%;
+	}
+}
+@media screen and (min-width: 70em) {
+	html {
+		font-size: 150%;
+	}
+}
+.ui-text,
+h1,h2,h3,h4,h5,h6 {
+	font-family: 'Signika', Calibri, Segoe, "Segoe UI", sans-serif;
+}
+
+.ui-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+.ui-list li {
+	margin: 0;
+	border: 0;
+}
+
+h1,h2,h3 {
+	font-weight: 400;
+}
+h1 {
+	font-size: 48px;
+	font-size: 3rem;
+	margin-bottom: 0.5rem;
+	margin-top: 1rem;
+}
+h2 {
+	margin-bottom: 0.25em;
+	color: #666;
+}
+hr {
+	border: 0;
+	border-top: 1px solid #ccc;
+	margin-bottom: 1.4444em;
+}
+p, li {
+	line-height: 1.4444;
+}
+p {
+	margin-top: 0;
+	margin-bottom: 1.4444em;
+}
+.lede {
+	font-size: 1.222223em;
+	line-height: 1.590909091;
+}
+a {
+	color: #006C7F;
+}
+code, pre {
+	font-family: Consolas, "Liberation Mono", Courier, monospace;
+}
+code {
+	padding: 0 0.1em;
+	background-color: rgba(243,193,58, 0.1);
+	font-size: 77.7777778%;
+}
+pre {
+	margin: 0;
+	padding: 0;
+}
+
+/* hack to fix whitespace problem with comma separated lists on multiple lines... */
+.comma {
+	display: inline-block;
+	margin-left: -0.3em;
+}
+/* @group Flow styles */
+
+.flow {
+	-webkit-hyphens: auto;
+	-moz-hyphens: auto;
+	-ms-hyphens: auto;
+	-o-hyphens: auto;
+	hyphens: auto;
+}
+
+.flow a {
+	text-decoration: none;
+}
+.flow a:visited {
+	color: #666;
+}
+.flow a:hover,
+.flow a:focus,
+.flow a:active {
+	color: #009bb8;
+}
+/* @end */
+
+/* @group "Page" wrap */
+.wrap {
+	border-top: 0.5em solid #60281E;
+	margin: 0 auto;
+	max-width: 38em;
+	min-width: 240px;
+	padding: 0.5em 1em;
+	position: relative;
+}
+/* Add a bit more padding when viewport gets wider: */
+@media screen and (min-width: 32em) {
+	.wrap {
+		padding: 0.5em 2em;
+	}
+}
+/* @end "Page" wrap */
+
+
+/* @group Site header */
+.site-header {
+	margin: 0.25em 0 1em;
+	padding-bottom: 0.5em;
+	border-bottom: 1px solid #ddd;
+	line-height: 1.6667;
+	font-size: 1.125em;
+	text-transform: uppercase;
+	letter-spacing: 0.15em;
+}
+.site-header a {
+	text-decoration: none;
+	color: #7b999f;
+	-webkit-perspective: 400px;
+}
+.site-header img {
+	-webkit-border-radius: 50%;
+	-moz-border-radius: 50%;
+	border-radius: 50%;
+	display: inline-block;
+	vertical-align: middle;
+	margin: -0.2em 0.5em 0 0;
+	height: 1em;
+	width: auto;
+	box-shadow: 0 0 0 2px #7B999F;
+}
+
+/* @end Site header */
+
+/* @group Site navigation */
+/* Navigation and supplementary link to navigation: */
+.site-nav {
+	position: relative;
+	border-top: 0.5em solid #60281E;
+	min-height: 30em;
+	min-height: 100vh; /* Yay, viewport heights! */
+	margin: -1em;
+	padding: 1em;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+.site-nav ul {
+	margin: 0;
+	padding: 0;
+}
+.site-nav li {
+	text-decoration: none;
+	list-style: none;
+	padding: 0;
+}
+
+.site-nav .site-nav-current {
+	border-left: 0.5em solid #60281E;
+}
+.site-nav-jump {
+	position: absolute;
+	top: 0.5em;
+	right: 2em;
+}
+.site-nav-jump a {
+	border-radius: 0.5em;
+	background-color: #006C7F;
+	border-top: 1px solid #4cacbc;
+	border-right: 1px solid #005b6d;
+	border-bottom: 1px solid #005160;;
+	border-left: 1px solid #24879a;
+	color: #fff;
+	text-decoration: none;
+	display: block;
+	line-height: 1.5em;
+	padding: 0.25em 0.5em;
+}
+@media screen and (min-width: 32em) {
+	.site-nav {
+		margin: 0 -2em;
+		padding: 1em 2em;
+	}
+}
+@media screen and (max-width: 38em) {
+	.site-nav li:first-child {
+		margin-top: 3em;
+	}
+	.site-nav li a {
+		display: block;
+		background-color: #eee;
+		padding: 0.5em;
+		line-height: 1.66667;
+	}
+	.site-nav li {
+		margin: 0 0 0.25em 0;
+	}
+	.site-nav li a:hover,
+	.site-nav li a:focus,
+	.site-nav li a:active {
+		background-color: #ddd;
+	}
+
+}
+@media screen and (min-width: 38em) {
+	.site-nav {
+		min-height: 0;
+		border-top: 0;
+		position: absolute;
+		top: 0;
+		right: 2em;
+	}
+	.site-nav:focus {
+		outline: 0;
+	}
+	.site-nav li {
+		display: inline-block;
+		margin-right: 1em;
+	}
+	.site-nav .site-nav-current {
+		border-left: 0;
+		margin-top: -1em;
+		border-top: 1em solid #60281E;
+	}
+	.site-nav a {
+		display: block;
+		text-decoration: none;
+		border-bottom: .0625em solid #ddd;
+		-webkit-transition: border-width 0.2s linear;
+		-moz-transition: border-width 0.2s linear;
+		-o-transition: border-width 0.2s linear;
+		transition: border-width 0.2s linear;
+		position: relative;
+		padding: 0 0.5em;
+	}
+	.site-nav a:hover,
+	.site-nav a:focus,
+	.site-nav a:active {
+		border-bottom-width: 0.9em;
+	}
+	.site-nav-jump {
+		display: none;
+	}
+	.site-nav .site-nav-jump a {
+		display: none;
+	}
+}
+/* @end Site navigation */
+
+
+/* @group Heading styles */
+.hd-entry {
+	text-align: center;
+}
+.hd-entry a {
+	text-decoration: none;
+}
+.hd-sidebar {
+	border-bottom: 1px solid #fff;
+}
+.hd-listing {
+	font-family: Poly, Constantia, "Lucida Bright", Lucidabright, Lucida, georgia, serif;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	font-size: 16px;
+	font-size: 1rem;
+	color: #888;
+}
+/* @end Heading styles */
+
+/* @group "Entries" */
+.entry {
+	border-bottom: 1px solid #999;
+	margin-bottom: 2em;
+}
+
+.entry-header,
+.entry-footer {
+	margin-bottom: 1em;
+}
+.entry-header {
+	border-bottom: 1px solid #ccc;
+}
+.entry-footer {
+	border-top: 1px solid #ccc;
+	padding-top: 1em;
+}
+.entry-body img {
+	max-width: 100%;
+}
+
+.entry-meta {
+	text-align: center;
+	font-style: italic;
+	color: #999;
+}
+.entry-date {
+	/* Looks better when animating in webkit with this... */
+	-webkit-transform: translate3d(0,0,0); 
+	-webkit-animation-name: slidefadefromright;
+	-webkit-animation-duration: 1.5s;
+	-moz-animation-name: slidefadefromright;
+	-moz-animation-duration: 1.5s;
+	animation-name: slidefadefromright;
+	animation-duration: 1.5s;
+}
+
+.entry-list .entry {
+	position: relative;
+	border-top: 1px solid #ccc;
+}
+.entry-list .entry-date {
+	-webkit-animation-name: none;
+	-webkit-animation-duration: 0s;
+	-moz-animation-name: none;
+	-moz-animation-duration: 0s;
+	animation-duration: 0s;
+	animation-name: none;
+}
+@media screen and (min-width: 38em) {
+	.entry-list .hd-entry,
+	.entry-list .entry-body {
+		text-align: left;
+		margin-left: 30%;
+	}
+	.entry-list .entry-date {
+		text-align: left;
+		position: absolute;
+		left: 0;
+		top: 1.25em;
+	}
+
+	.entry-list .entry-figure {
+		width: 25%;
+		position: absolute;
+		left: 0;
+	}
+}
+
+/* @end "Entries" */
+
+/* @group Sidebars */
+.sidebar {
+	background-color: rgba(24, 12, 4, 0.05);
+	padding: 0 1em;
+	margin-bottom: 1em;
+	box-shadow: 0.3em 0.3em 0 rgba(96, 40, 30, 0.1);
+	overflow: auto;
+}
+
+@media screen and (min-width: 36em) {
+	.sidebar {
+		box-sizing: -webkit-border-box;
+		box-sizing: -moz-border-box;
+		box-sizing: border-box;
+		float: right;
+		width: 33%;
+		margin-left: 1em;
+		min-width: 12em;
+		max-width: 20em;
+		position: relative;
+		right: -1.5em;
+	}
+}
+
+.sidebar-quote {
+	font-size: 1.136363636em;
+	margin: 1em;
+	font-style: italic;
+	font-weight: 200;
+	color: #666;
+}
+.sidebar-quote p {
+	font-size: inherit;
+	font-style: inherit;
+}
+/* @end Sidebars */
+
+/* @group Figures */
+figure {
+	margin: 0;
+	padding: 0;
+}
+.figure {
+	background-color: #f1f1f1;
+	background-color: rgba(24, 12, 4, 0.05);
+	padding: 0.5em;
+}
+
+.figure img {
+	max-width: 100%;
+}
+
+.figcaption {
+	padding-top: 0.5em;
+	color: #999;
+	font-style: italic;
+}
+.figcaption p {
+	margin-bottom: 0;
+}
+/* @end */
+
+/* @group Gist overrides */
+.gist-data {
+	font-size: 77.7777778% !important;
+}
+/* @end Gist overrides */
+
+/* @group Code blocks */
+.code-block {
+	overflow: auto;
+	color: #333;
+	background-color: #fefefe;
+	background-color: rgba(243,193,58, 0.1);
+	padding: 18px;
+	box-shadow: inset 0 0 .5em rgba(0,0,0,0.2);
+}
+/* @end Code blocks */
+
+/* @group Animations */
+@-webkit-keyframes slidefadefromright {
+	0% {
+		opacity: 0;
+		-webkit-transform: translateX(1em);
+	}
+	50% {
+		opacity: 0;
+		-webkit-transform: translateX(1em);
+	}
+	100% {
+		opacity: 1;
+		-webkit-transform: translateX(0);
+	}
+}
+@-moz-keyframes slidefadefromright {
+	0% {
+		opacity: 0;
+		-moz-transform: translateX(1em);
+	}
+	50% {
+		opacity: 0;
+		-moz-transform: translateX(1em);
+	}
+	100% {
+		opacity: 1;
+		-moz-transform: translateX(0);
+	}
+}
+@keyframes slidefadefromright {
+	0% {
+		opacity: 0;
+		transform: translateX(1em);
+	}
+	50% {
+		opacity: 0;
+		transform: translateX(1em);
+	}
+	100% {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+/* @end Animations */
+
+/* Font-loading fade-in trick, thx Clearleft, I like it. :) */
+.wf-loading .wf {
+  opacity: 0;
+}
+/*.js .wf {
+  -webkit-transition: opacity 0.3s;
+  -moz-transition: opacity 0.3s;
+  transition: opacity 0.3s;
+}*/
