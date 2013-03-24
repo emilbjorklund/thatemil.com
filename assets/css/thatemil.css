@@ -492,8 +492,8 @@ figure {
 .wf-loading .wf {
   opacity: 0;
 }
-/*.js .wf {
+.js .wf {
   -webkit-transition: opacity 0.3s;
   -moz-transition: opacity 0.3s;
   transition: opacity 0.3s;
-}*/
+}
