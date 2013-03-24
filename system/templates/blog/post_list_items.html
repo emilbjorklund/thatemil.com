@@ -13,16 +13,16 @@
     </perch:if>
     
     <perch:if exists="excerpt">
-    <perch:blog id="excerpt" type="textarea" textile="true" />
+    <perch:blog id="excerpt" type="textarea" markdown="true" />
     <p><a href="<perch:blog id="postURL" />">Read the whole post &quot;<perch:blog id="postTitle" />&quot;</a></p>
     
     <perch:else />
     <perch:if exists="postLedeHTML">
     <div class="lede">
-        <perch:blog id="postLedeHTML" type="textarea" textile="true" />
+        <perch:blog id="postLedeHTML" type="textarea" markdown="true" />
     </div>
     </perch:if>
-    <perch:blog id="postDescHTML" type="textarea" textile="true" />
+    <perch:blog id="postDescHTML" type="textarea" markdown="true" />
     </perch:if>
     </div>
 </li>
