@@ -2,3 +2,5 @@
 /system/resources
 /system/.DS_Store
 /system/config/config.php
+/system/config/config.local.php
+/system/config/config.prod.php
