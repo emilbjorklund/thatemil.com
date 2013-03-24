@@ -39,7 +39,7 @@
 
 
 	<link rel="stylesheet" href="/assets/css/thatemil.css">
-	<link rel="alternate" type="application/rss+xml" title="RSS feed for That Emil blog posts" href="/blog/rss">
+	<link rel="alternate" type="application/rss+xml" title="RSS feed for That Emil blog posts" href="http://feeds.feedburner.com/thatemil-blog">
 </head>
 <body>
 	<div id="content-top" class="wrap">
