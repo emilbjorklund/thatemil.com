@@ -1,4 +1,4 @@
-<?php include('../perch/runtime.php'); ?>
+<?php include('../system/runtime.php'); ?>
 <?php 
     header('Content-Type: application/rss+xml');
 
@@ -7,10 +7,10 @@
 
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
     <channel>
-        <title>Perch Blog Example</title>
-        <link>http://example.com/blog/</link>
-        <description>My awesome website.</description>
-        <atom:link href="http://example.com/blog/rss.php" rel="self" type="application/rss+xml" />
+        <title>That Emil - Blog</title>
+        <link>http://thatemil.com/blog/</link>
+        <description>Blog posts from Emil Björklund.</description>
+        <atom:link href="http://thatemil.com/blog/rss" rel="self" type="application/rss+xml" />
         <?php
             perch_blog_custom(array(
                 'template'=>'blog/rss_post.html',
