@@ -13,7 +13,7 @@
 
 	<script type="text/javascript">
 		  window.WebFontConfig = {
-		    google: { families: [ 'Signika::latin', 'Poly:400,400italic:latin' ] }
+		    google: { families: [ 'Poly:400,400italic:latin' ] }
 		  };
 		  (function() {
 		    var html = document.getElementsByTagName('html')[0];
