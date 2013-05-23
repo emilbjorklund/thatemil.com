@@ -4,3 +4,5 @@
 /system/config/config.php
 /system/config/config.local.php
 /system/config/config.prod.php
+*.pyc
+/bin/fabfile.py
