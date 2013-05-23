@@ -1,11 +1,8 @@
 <perch:before>
-<p class="entry-meta entry-categories">Filed under 
-</perch:before>
+<p class="entry-meta entry-categories">Filed under </perch:before>
 
 <perch:if id="perch_item_count" match="eq" value="{perch_item_index}">
-	<perch:if id="perch_item_index" match="neq" value="1">
-	and 
-	</perch:if>
+	<perch:if id="perch_item_index" match="neq" value="1">and </perch:if>
 <perch:else />
 	<perch:if id="perch_item_index" match="gt" value="1"><span class="comma">, </span></perch:if>
 </perch:if>
