@@ -39,6 +39,7 @@ ExpiresByType application/x-shockwave-flash "access plus 1 years"
     # RewriteRule ^(.*)$ http://thatemil.dev/$1/ [L,R=301]
 
     # Rewrites for blog posts, hang on...
+    RewriteRule ^blog/([0-9]{4})/([0-1][0-9])/([0-3][0-9])/([a-zA-Z0-9-/]+)/preview$ /blog/post.php?s=$1-$2-$3-$4/preview [L]
     RewriteRule ^blog/([0-9]{4})/([0-1][0-9])/([0-3][0-9])/([a-zA-Z0-9-/]+)$ /blog/post.php?s=$1-$2-$3-$4 [L]
     RewriteRule ^blog/([0-9]{4})/([0-1][0-9])/([0-3][0-9])(/)?$ /blog/archive.php?year=$1&month=$2&day=$3 [L]
     RewriteRule ^blog/([0-9]{4})/([0-1][0-9])(/)?$ /blog/archive.php?year=$1&month=$2 [L]
