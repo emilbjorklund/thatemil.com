@@ -4,10 +4,10 @@
 		<main id="content-main" role="main">
 			<article class="entry flow">
 				<h1 class="hd-entry wf"><?php perch_pages_title(); ?></h1>
-				<div class="lede wf">
+				<div class="lede">
 					<?php perch_content('Intro'); ?>
 				</div>
-				<div class="entry-body wf">
+				<div class="entry-body">
 					<?php perch_content('Main Content'); ?>
 				</div>
 			</article>

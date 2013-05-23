@@ -3,7 +3,7 @@
 
 <main id="content-main" role="main">
 	<article class="entry">
-		<div class="lede wf">
+		<div class="lede">
 			<?php perch_content('Intro'); ?>
 		</div>
 
