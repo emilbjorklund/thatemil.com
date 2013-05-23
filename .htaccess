@@ -49,3 +49,9 @@ ExpiresByType application/x-shockwave-flash "access plus 1 years"
     RewriteRule ^blog/category/([a-zA-Z0-9-/]+)$ /blog/archive.php?cat=$1 [L]
     RewriteRule ^blog/tag/([a-zA-Z0-9-/]+)$ /blog/archive.php?tag=$1 [L]
 </IfModule>
+
+# Prevent web access to .git folder:
+<Files .git/*>
+    order allow,deny
+    deny from all
+</Files>
