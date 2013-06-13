@@ -479,6 +479,7 @@ figure {
 }
 .code-block code {
 	background-color: transparent;
+	border-bottom: 0;
 }
 /* @end Code blocks */
 
