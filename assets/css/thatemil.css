@@ -75,6 +75,7 @@ code, samp {
 	background-color: transparent;
 	background-color: rgba(243,193,58, 0.1);
 	font-size: 87.5%;
+	border-bottom: 1px solid rgba(243,193,58, 0.6);
 }
 pre {
 	margin: 0 0 1.5em;
