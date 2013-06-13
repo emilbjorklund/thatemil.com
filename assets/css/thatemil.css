@@ -117,6 +117,7 @@ main,article,section,header,footer,figure,figcaption {
 
 .flow a {
 	text-decoration: none;
+	border-bottom: 1px dotted #009bb8;
 }
 .flow a:visited {
 	color: #666;
@@ -444,6 +445,7 @@ figure {
 
 .figure img {
 	max-width: 100%;
+	background-color: #fff;
 }
 
 .figcaption {
