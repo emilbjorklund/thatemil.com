@@ -6,3 +6,5 @@
 /system/config/config.prod.php
 *.pyc
 /bin/fabfile.py
+/system/addons/apps/.DS_Store
+/system/addons/.DS_Store

@@ -3,6 +3,9 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+<?php if (isset($is_archive) && $is_archive): ?>
+	<meta name="robots" content="noindex, follow">
+<?php endif; ?>
 	<title><?php 
 		if (isset($page_title)) {
 			echo $page_title;

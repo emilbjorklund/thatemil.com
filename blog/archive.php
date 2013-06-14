@@ -7,6 +7,7 @@ $mode = 'date';
 $page_title = 'Post archive';
 $date_from  = date('Y-01-01 00:00:00');
 $date_to    = date('Y-12-31 23:59:59');
+$is_archive = True;
 
 
 // Category?
