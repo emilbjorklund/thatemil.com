@@ -566,6 +566,7 @@ class PerchContent extends PerchApp
                                 unset($out[$item['_id']]);
                             }
 
+                            if (!isset($item[$key])) $item[$key] = false;
                             if (isset($item[$key])) {
                                 $this_item = $this->_resolve_to_value($item[$key]);
 
@@ -824,6 +825,33 @@ class PerchContent extends PerchApp
         return $html;
     }
     
+
+    public function create_region($key=false, $opts=array())
+    {
+        if ($key === false) return false;
+        
+        if ($this->cache === false) {
+            $this->_populate_cache_with_page_content();
+        }
+        
+        if (!in_array($key, $this->key_requests)) $this->key_requests[] = $key;
+        
+            
+        if (isset($this->cache[$key])) {
+            return false;
+        }else{
+            $this->_register_new_key($key, $opts);
+        }
+        
+        if ($this->new_keys_registered) {
+            // re-order keys in light of the new key
+            $this->_reorder_keys();
+            return true;
+        }
+        
+        return false;
+        
+    }
 
     
     public function search_content($key, $opts)
@@ -1177,19 +1205,62 @@ class PerchContent extends PerchApp
      * @return void
      * @author Drew McLellan
      */
-    private function _register_new_key($key)
+    private function _register_new_key($key, $opts=false)
     {
         if (!isset($this->registered[$key])) {      
             
             $Perch  = Perch::fetch();
             $page   = $Perch->get_page();
+
+
         
             $data = array();
             $data['regionKey'] = $key;
             $data['regionPage'] = $page;
             $data['regionHTML'] = '<!-- Undefined content: '.PerchUtil::html($key).' -->';
             $data['regionOptions'] = '';
-            $data['pageID'] = $this->_find_or_create_page($page);
+            
+            if (is_array($opts)) {
+
+                if ($opts['page'])   $data['regionPage'] = $opts['page'];
+                if ($opts['shared']) $data['regionPage'] = '*';
+                
+                
+                if ($opts['template']) {
+                    $data['regionTemplate'] = $opts['template']; 
+                    $data['regionNew'] = 0; 
+                } 
+                
+                if ($opts['multiple']) {
+                    $data['regionMultiple'] = 1;  
+                }else{
+                    $data['regionMultiple'] = 0;
+                }
+
+                if ($opts['searchable']) {
+                    $data['regionSearchable'] = 1;  
+                }else{
+                    $data['regionSearchable'] = 0;
+                }
+
+                if ($opts['roles']) $data['regionEditRoles'] = $opts['roles'];
+
+                $regionOptions = array();
+
+                if ($opts['sort'])              $regionOptions['sortField']     = $opts['sort'];
+                if ($opts['sort-order'])        $regionOptions['sortOrder']     = $opts['sort-order'];
+                if ($opts['edit-mode'])         $regionOptions['edit_mode']     = $opts['edit-mode'];
+                if ($opts['search-url'])        $regionOptions['searchURL']     = $opts['search-url'];
+                if ($opts['add-to-top'])        $regionOptions['addToTop']      = $opts['add-to-top'];
+                if ($opts['limit'])             $regionOptions['limit']         = $opts['limit'];
+                if ($opts['title-delimiter'])   $regionOptions['title_delimit'] = $opts['title-delimiter'];
+                if ($opts['columns'])           $regionOptions['column_ids']    = $opts['columns'];
+
+                $data['regionOptions'] = PerchUtil::json_safe_encode($regionOptions);
+
+            }
+
+            $data['pageID'] = $this->_find_or_create_page($data['regionPage']);
         
             $db = PerchDB::fetch();
             
@@ -1229,6 +1300,8 @@ class PerchContent extends PerchApp
      */
     private function _find_or_create_page($path)
     {
+        if ($path=='*') return 1;
+
         if ($this->pageID) return $this->pageID;
         
         $db = PerchDB::fetch();
@@ -1242,10 +1315,11 @@ class PerchContent extends PerchApp
         }
         
         $data = array();
-        $data['pagePath'] = $path;
-        $data['pageTitle'] = PerchUtil::filename($path, false, false);
+        $data['pagePath']    = $path;
+        $data['pageTitle']   = PerchUtil::filename($path, false, false);
         $data['pageNavText'] = $data['pageTitle'];
-        $data['pageNew'] = 1;
+        $data['pageNew']     = 1;
+        $data['pageDepth']   = 0;
         
         return $db->insert($table, $data);
     }

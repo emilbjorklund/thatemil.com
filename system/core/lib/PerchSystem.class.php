@@ -82,6 +82,7 @@ class PerchSystem
     
     public static function get_vars()
     {
+        self::$template_vars['perch_page_path'] = self::get_page();
         return self::$template_vars;
     }
 }

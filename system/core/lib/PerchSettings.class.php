@@ -48,7 +48,7 @@ class PerchSettings extends PerchFactory
             $CurrentUser = $this->CurrentUser;
             
             if (is_object($CurrentUser) && $CurrentUser->logged_in()) {
-                $sql = 'SELECT DISTINCT settingID, settingValue FROM ' . $this->table .' WHERE userID='.$this->db->pdb($CurrentUser->id()).' OR userID=0 GROUP BY settingID ORDER BY userID DESC';
+                $sql = 'SELECT * FROM (SELECT DISTINCT settingID, settingValue FROM ' . $this->table .' WHERE userID='.$this->db->pdb($CurrentUser->id()).' OR userID=0 ORDER BY userID DESC) AS settings GROUP BY settingID';
             }else{
                 $sql = 'SELECT DISTINCT settingID, settingValue FROM ' . $this->table .' WHERE userID=0';
             }
@@ -77,7 +77,7 @@ class PerchSettings extends PerchFactory
         $CurrentUser = $this->CurrentUser;
         
         if ($user_specific && $CurrentUser->logged_in()) {
-            $sql = 'SELECT DISTINCT settingID, settingValue FROM ' . $this->table .' WHERE userID='.$this->db->pdb($CurrentUser->id()).' OR userID=0 GROUP BY settingID ORDER BY userID DESC';
+            $sql = 'SELECT * FROM (SELECT DISTINCT settingID, settingValue FROM ' . $this->table .' WHERE userID='.$this->db->pdb($CurrentUser->id()).' OR userID=0 ORDER BY userID DESC) AS settings GROUP BY settingID';
         }else{
             $sql = 'SELECT DISTINCT settingID, settingValue FROM ' . $this->table .' WHERE userID=0';
         }

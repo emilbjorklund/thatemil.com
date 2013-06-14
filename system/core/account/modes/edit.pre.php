@@ -73,5 +73,6 @@
 
     $details = $User->to_array();
     $settings = $Settings->get_as_array(true);
+    PerchUtil::debug($settings);
 
 ?>

@@ -946,6 +946,10 @@ class Textile
 
         $text = str_replace("<br />", "<br />\n", $text);
 
+        // DM - 2012-09-3 quick fix
+        $text = str_replace('&amp;amp;', '&amp;', $text);
+
+
         return $text;
     }
 

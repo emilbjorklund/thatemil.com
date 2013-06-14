@@ -31,6 +31,10 @@ class PerchAPI
                 }
                 return $this->Lang;
                 break;
+
+            case 'Settings':
+                return PerchSettings::fetch();
+                break;
             
             default:
                 return new $full_class_name($this->version, $this->app_id, $this->Lang);

@@ -96,7 +96,7 @@
         </div>
     
     
-        <div class="field last">
+        <div class="field">
             <?php echo $Form->label('addToTop', 'New items are'); ?>
             <?php
                 $opts = array();
@@ -105,14 +105,50 @@
                 echo $Form->select('addToTop', $opts, $Form->get($options, 'addToTop', 0));
             ?>
         </div>
+
+        <?php
+            // Used by column_ids and sortField
+            $Template = new PerchTemplate('content/'.$Region->regionTemplate(), 'content');
+            $tags   = $Template->find_all_tags('content');
+
+        ?>
+
+
+        <div class="field last">
+            <?php echo $Form->label('column_ids', 'Item list column IDs'); ?>
+            <?php
+                echo $Form->text('column_ids', $Form->get($options, 'column_ids'), 'xl');
+                echo $Form->hint(PerchLang::get('Enter field IDs to list when editing in list and detail mode. Comma separated.'));
+
+                $suggestions = array();
+                $suggestions[] = '_title';
+
+                $seen_tags = array();
+                if (PerchUtil::count($tags)) {
+                    foreach($tags as $Tag) {
+                        $tag_id = $Tag->id();
+                        if ($Tag->output()) {
+                            $tag_id .='['.$Tag->output().']';
+                        }
+                        if (!in_array($tag_id, $seen_tags) && $Tag->id()) {
+                            $suggestions[] = $tag_id;
+                            $seen_tags[] = $tag_id;
+                        }
+                    }
+                    sort($suggestions);
+                }
+
+
+                echo $Form->hint(PerchLang::get('Choose from: ').implode(', ', $suggestions));
+            ?>
+        </div>
         
         <h2><?php echo PerchLang::get('Display'); ?></h2>
 
         <div class="field">
             <?php echo $Form->label('sortField', 'Sort by'); ?>
             <?php
-                $Template = new PerchTemplate('content/'.$Region->regionTemplate(), 'content');
-                $tags   = $Template->find_all_tags('content');
+                
                 $seen_tags = array();
                 $opts = array();
                 $opts[] = array('label'=>PerchLang::get('Default order'), 'value'=>'');

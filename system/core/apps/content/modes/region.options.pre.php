@@ -82,7 +82,7 @@
         
         // opts
         
-        $postvars = array('sortOrder', 'sortField', 'adminOnly', 'limit', 'searchURL', 'addToTop', 'edit_mode');
+        $postvars = array('sortOrder', 'sortField', 'adminOnly', 'limit', 'searchURL', 'addToTop', 'edit_mode', 'column_ids');
     	$data = $Form->receive($postvars);
 
         if (isset($_POST['title_delimit'])) {

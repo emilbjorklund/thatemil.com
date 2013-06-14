@@ -45,5 +45,5 @@
 
     $items = $Region->get_items_for_editing();
 
-	
+	$cols = $Region->get_edit_columns();
 ?>

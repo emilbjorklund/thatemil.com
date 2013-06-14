@@ -2,27 +2,22 @@
 
 class PerchTemplate
 {
-    protected $namespace;
-	public $file;
+	protected $namespace;
 	protected $template;
-	protected $cache		= array();
+	protected $cache                 = array();
+	protected $autoencode            = true;
 	
-	public $status = 0;
+	public 	  $file;
+	public    $status                = 0;
+	public    $apply_post_processing = false;
+	public    $current_file          = false;
 	
-	protected $autoencode = true;
-	
-	public $apply_post_processing = false;
-	
-	public $current_file = false;
-
-	private $_previous_item = array();
-
-	private $sub_vars = array();
+	private   $_previous_item        = array();
+	private   $sub_vars              = array();
 	
 	function __construct($file=false, $namespace='content', $relative_path=true)
 	{
-    
-		$this->current_file = $file;
+    	$this->current_file = $file;
 		
 		$this->namespace = $namespace;
 	
@@ -40,15 +35,16 @@ class PerchTemplate
 			$this->status = 404;
 		}
 
-			
+		// Mock up fallback functions if server doesn't have mbstring
+		$this->mb_fallback();
 	}
 	
 	public function render_group($content_vars, $return_string=false)
 	{
 		$r	= array();
-		if (PerchUtil::count($content_vars)){
-		    $count = PerchUtil::count($content_vars);
+		$count = PerchUtil::count($content_vars);
 
+		if ($count){
 		    $ids = $this->find_all_tag_ids($this->namespace);
 		    $this->_previous_item = array();
 
@@ -59,17 +55,21 @@ class PerchTemplate
     			    if (is_object($item)) {
                         $item = $item->to_array($ids);
                     }
-			    
-    			    if ($i==0) $item['perch_item_first'] = true;
-    			    if ($i==($count-1)) $item['perch_item_last'] = true;
+		    
+    			    if ($i==0) 			$item['perch_item_first'] = true;
+    			    if ($i==($count-1)) $item['perch_item_last']  = true;
+
     			    $item['perch_item_index'] = $i+1;
-    			    $item['perch_item_odd'] = ($i % 2 == 0 ? '' : 'odd');
+    			    $item['perch_item_odd']   = ($i % 2 == 0 ? '' : 'odd');
     			    $item['perch_item_count'] = $count;
+    				
     				$r[] = $this->render($item, $i+1);
 
     				$this->_previous_item = $item;
     			}
 			}
+		}else{
+			PerchUtil::debug('woo');
 		}
 		
 		if ($return_string) {
@@ -84,61 +84,42 @@ class PerchTemplate
 	    $system_vars = PerchSystem::get_vars();	    
     
         if (is_object($content_vars)) {
-        	$ids = $this->find_all_tag_ids($this->namespace);
+        	$ids 		  = $this->find_all_tag_ids($this->namespace);
             $content_vars = $content_vars->to_array($ids);
         }
         
         if (is_array($system_vars) && is_array($content_vars)) {
             $content_vars = array_merge($system_vars, $content_vars);
         }
+
+        if (!is_array($content_vars)) {
+        	$content_vars = array();
+        }
 		
 		$template	= str_replace(PERCH_PATH, '', $this->template);
 		$path		= $this->file;
 		
 		$contents	= $this->load();	
+
 		
 		// FORMS
-		$contents = str_replace('<perch:form', '<perch:form template="'.$template.'"', $contents);
+		$contents 	= str_replace('<perch:form', '<perch:form template="'.$template.'"', $contents);
 		
+		// BEFORE
+		$contents 	= $this->parse_paired_tags('before', true,  $contents, $content_vars, $index_in_group, 'parse_conditional');
+		
+		// AFTER
+		$contents 	= $this->parse_paired_tags('after',  true,  $contents, $content_vars, $index_in_group, 'parse_conditional');
+		
+		// IF
+		$contents 	= $this->parse_paired_tags('if', 	 false, $contents, $content_vars, $index_in_group, 'parse_conditional');
 
-		// CONDITIONALS
-		$i = 0;
-        while ((strpos($contents, 'perch:if')>0 || strpos($contents, 'perch:after')>0 || strpos($contents, 'perch:before')>0) && $i<10) {
-            
-            $s = '/(<perch:(if|after|before)[^>]*>)(((?!perch:(if|after|before)).)*)<\/perch:(if|after|before)>/s';
-    		
-    		$count	= preg_match_all($s, $contents, $matches, PREG_SET_ORDER);
-		    
-    		if ($count > 0) {		    
-    			foreach($matches as $match) {
-    			    $contents = $this->parse_conditional($match[2], $match[1], $match[3], $match[0], $contents, $content_vars);
-    			}	
-    		}
-    		
-    		$i++;
-    	}
-
-        // REPEATERS
-        if ($index_in_group!==false) {
-            $i = 0;
-            while (strpos($contents, 'perch:every')>0 && $i<10) {
-                $s = '/((?><(perch:(every)))[^>]*?>)((?!perch:every).*?)(?><\/\2>)/s';
-
-        		$count	= preg_match_all($s, $contents, $matches, PREG_SET_ORDER);
-
-        		if ($count > 0) {		    
-        			foreach($matches as $match) {
-        			    $contents = $this->parse_repeater($index_in_group, $match[1], $match[4], $match[0], $contents, $content_vars);
-        			}	
-        		}
-
-        		$i++;
-        	}
-        }
+		// EVERY
+		$contents 	= $this->parse_paired_tags('every',  false, $contents, $content_vars, $index_in_group, 'parse_repeater');	  
 
 		// CONTENT
-		$contents 	= $this->replace_content_tags($this->namespace, $content_vars, $contents); 
-	
+		$contents 	= $this->replace_content_tags($this->namespace, $content_vars, $contents);
+
 		// SHOW ALL
 		$contents 	= $this->process_show_all($content_vars, $contents);
 		
@@ -148,20 +129,9 @@ class PerchTemplate
 		// NO RESULTS
 		$contents   = $this->remove_noresults($contents);
 		
-		// CLEAN UP ANY UNMATCHED <perch: /> TAGS
-		$s 			= '/<perch:(?!(form|input|label|error|success|';
-
-		$handlers = PerchSystem::get_registered_template_handlers();
-
-    	if (PerchUtil::count($handlers)) {
-    		foreach($handlers as $handlerClass) {
-    			$Handler = new $handlerClass;
-    			if ($Handler->tag_mask!='') $s .= $Handler->tag_mask.'|';
-    		}
-    	}
-
-		$s 			.= 'setting|url))[^>]*>/';
-		$contents	= preg_replace($s, '', $contents);
+		// UNMATCHED TAGS
+		$contents 	= $this->remove_unmatched_tags($contents);
+		
 				
     	return $contents;
 	}
@@ -169,144 +139,158 @@ class PerchTemplate
 	public function replace_content_tags($namespace, $content_vars, $contents)
 	{
 		if (is_array($content_vars)) {
-			foreach ($content_vars as $key => $value) {	
 
-				
-				$s = '/<perch:'.$namespace.'[^>]*id="'.$key.'"[^>]*>/';
-				$count	= preg_match_all($s, $contents, $matches);
-						
-				if ($count > 0) {
-					foreach($matches[0] as $match) {
-						$tag = new PerchXMLTag($match);
-						if ($tag->suppress) {
-						    $contents = str_replace($match, '', $contents);
-						}else{	
-	    					if (is_object($value) && get_class($value) == 'Image') {
-	    						if ($tag->class) {
-	    							$out		= $value->tag($tag->class);
-	    							$contents 	= str_replace($match, $out, $contents);
-	    						}else{
-	    							$out		= $value->tag();
-	    							$contents 	= str_replace($match, $out, $contents);
-	    						}
-	    					}else{
-								$field_is_markup = false;
-						        
-						        if ($tag->type) {
-						            $FieldType = PerchFieldTypes::get($tag->type, false, $tag);
-	    					        $modified_value = $FieldType->get_processed($value);
-	   								$field_is_markup = $FieldType->processed_output_is_markup;
-						        }else{
-						            $modified_value = $value;
-						        }
+			// Find all matching content tags
+			$s 		= '#<perch:'.$namespace.'[^>]*/>#';
+			$count	= preg_match_all($s, $contents, $matches, PREG_SET_ORDER);
 
-						        // check for 'rewrite' attribute
-						        if ($tag->rewrite) {
-						        	$modified_value = $this->_rewrite($tag, $modified_value);
-						        }
+			if ($count) {
+				foreach($matches as $match) {
+					$match = $match[0];
+					$tag   = new PerchXMLTag($match);
 
-						    
-	    					    // check for 'format' attribute
-	    					    if ($tag->format) {
-	    					    	$modified_value = $this->_format($tag, $modified_value);
-	    					    }
-	    					    
-	    					    // check for 'replace' strings
-	    					    if ($tag->replace) {
-	    					        $pairs = explode(',', $tag->replace);
-						            if (PerchUtil::count($pairs)) {
-						                foreach($pairs as $pair) {
-						                    $pairparts = explode('|', $pair);
-						                    if (isset($pairparts[0]) && isset($pairparts[1])) {
-						                        $modified_value = str_replace(trim($pairparts[0]), trim($pairparts[1]), $modified_value);
-						                    }
-						                }
-						            }
-	    					    }
-	    					    
-	    					    // check for urlify
-	    					    if ($tag->urlify) {
-	    					        $modified_value = PerchUtil::urlify($modified_value);
-	    					    }
-	    					        					    
-	                            
-						        // Trim by chars
-	                            if ($tag->chars) {
-	                                if (strlen($modified_value) > (int)$tag->chars) {
-	                                    $modified_value = PerchUtil::excerpt_char($modified_value, (int)$tag->chars, false, true, $tag->append);
-	                                }
-	                            }
-
-	                            // Trim by words
-	                            if ($tag->words) {
-	                                $modified_value = PerchUtil::excerpt($modified_value, (int)$tag->words, false, true, $tag->append);
-	                            }
-
-	                            // Hash
-	                            if ($tag->hash=='md5') {
-	                            	$modified_value = md5($modified_value);
-	                            }
-						    
-	    					    
-	    					    // check that what we've got isn't an array. If it is, try your best to get a good string.
-						        if (is_array($modified_value)) {
-						            if (isset($modified_value['_default'])) {
-						                $modified_value = (string) $modified_value['_default'];
-						            }else{
-						            	if (isset($modified_value['processed'])) {
-						            		$modified_value = (string) $modified_value['processed'];
-						            	}else{
-						            		$modified_value = (string) array_shift($modified_value);	
-						            	}
-						                
-						            }
-						            
-						        }
-						        
-						        if ($tag->escape) {
-						            $modified_value = PerchUtil::html($modified_value, true);
-						        }
-	    					    
-	    					    if ($tag->urlencode) {
-						            $modified_value = urlencode($modified_value);
-						        }
-
-	    					    // check encoding
-	    					    if ($this->autoencode && !$field_is_markup) {
-	    					        if ((!$tag->is_set('encode') || $tag->encode==true) && ($tag->is_set('html') && $tag->html==false && !$tag->textile && !$tag->markdown)) {
-						                $modified_value = PerchUtil::html($modified_value);
-	    					        }
-	    					    }
-						        
-						        
-						    
-	    						$contents = str_replace($match, $modified_value, $contents);
-	    					}
+					if ($tag->suppress) {
+						$contents = str_replace($match, '', $contents);
+					}else{
+						$key = $tag->id;
+						if (isset($content_vars[$key])) {
+							$value = $content_vars[$key];
+						}else{
+							$contents = str_replace($match, '', $contents);
+							continue;
 						}
-					}
-					
-				}
-				
-			}
-		}
 
+						$field_is_markup = false;
+					        
+				        if ($tag->type) {
+				            $FieldType = PerchFieldTypes::get($tag->type, false, $tag);
+					        $modified_value = $FieldType->get_processed($value);
+								$field_is_markup = $FieldType->processed_output_is_markup;
+				        }else{
+				            $modified_value = $value;
+				        }
+
+				        // check for 'rewrite' attribute
+				        if ($tag->rewrite) {
+				        	$modified_value = $this->_rewrite($tag, $modified_value);
+				        }
+
+				    
+					    // check for 'format' attribute
+					    if ($tag->format) {
+					    	$modified_value = $this->_format($tag, $modified_value);
+					    }
+					    
+					    // check for 'replace' strings
+					    if ($tag->replace) {
+					        $pairs = explode(',', $tag->replace);
+				            if (PerchUtil::count($pairs)) {
+				                foreach($pairs as $pair) {
+				                    $pairparts = explode('|', $pair);
+				                    if (isset($pairparts[0]) && isset($pairparts[1])) {
+				                        $modified_value = str_replace(trim($pairparts[0]), trim($pairparts[1]), $modified_value);
+				                    }
+				                }
+				            }
+					    }
+					    
+					    // Urlify
+					    if ($tag->urlify) {
+					        $modified_value = PerchUtil::urlify($modified_value);
+					    }
+					        					    
+                        
+				        // Trim by chars
+                        if ($tag->chars) {
+                            if (strlen($modified_value) > (int)$tag->chars) {
+                                $modified_value = PerchUtil::excerpt_char($modified_value, (int)$tag->chars, false, true, $tag->append);
+                            }
+                        }
+
+                        // Trim by words
+                        if ($tag->words) {
+                            $modified_value = PerchUtil::excerpt($modified_value, (int)$tag->words, false, true, $tag->append);
+                        }
+
+                        // Hash
+                        if ($tag->hash=='md5') {
+                        	$modified_value = md5($modified_value);
+                        }
+				    
+					    
+					    // check that what we've got isn't an array. If it is, try your best to get a good string.
+				        if (is_array($modified_value)) {
+				            if (isset($modified_value['_default'])) {
+				                $modified_value = (string) $modified_value['_default'];
+				            }else{
+				            	if (isset($modified_value['processed'])) {
+				            		$modified_value = (string) $modified_value['processed'];
+				            	}else{
+				            		$modified_value = (string) array_shift($modified_value);	
+				            	}
+				            }
+				        }
+				        
+				        if ($tag->escape) {
+				            $modified_value = PerchUtil::html($modified_value, true);
+				        }
+					    
+					    if ($tag->urlencode) {
+				            $modified_value = urlencode($modified_value);
+				        }
+
+					    // check encoding
+					    if ($this->autoencode && !$field_is_markup) {
+					        if ((!$tag->is_set('encode') || $tag->encode==true) && ($tag->is_set('html') && $tag->html==false && !$tag->textile && !$tag->markdown)) {
+				                $modified_value = PerchUtil::html($modified_value);
+					        }
+					    }
+				    
+						$contents = str_replace($match, $modified_value, $contents);
+					}
+				}
+			}		
+		}
 		return $contents;
 	}
 
 
-	public function find_tag($tag)
+	/**
+	 * Find tag by ID. Optionally also ID with a given output="" attributye
+	 * @return [type]          PerchXMLTag
+	 */
+	public function find_tag($tag, $output=false)
 	{ 
 		$template	= $this->template;
 		$path		= $this->file;
 		
 		$contents	= $this->load();
-			
+		
 		$s = '/<perch:[^>]*id="'.$tag.'"[^>]*>/';
-		$count	= preg_match($s, $contents, $match);
 
-		if ($count == 1){
-			return new PerchXMLTag($match[0]);
+		if ($output) {
+
+			$count	= preg_match_all($s, $contents, $matches, PREG_SET_ORDER);
+
+			if ($count) {
+				foreach($matches as $match) {
+					$Tag = new PerchXMLTag($match[0]);
+					if ($Tag->output() && $Tag->output()==$output) {
+						return $Tag;
+					}
+				}
+			}
+
+		}else{
+			
+			$count	= preg_match($s, $contents, $match);
+
+			if ($count == 1){
+				return new PerchXMLTag($match[0]);
+			}
 		}
+
+
 		
 		return false;
 	}
@@ -339,7 +323,7 @@ class PerchTemplate
 		        }
 		    }
 		    
-		    // sort tags using 'sort' attribute
+		    // sort tags using 'order' attribute
 		    $out = PerchUtil::array_sort($out, 'order');
 		    
 		    $final = array();
@@ -403,34 +387,65 @@ class PerchTemplate
 		
 	}
 
+	public function remove_unmatched_tags($contents)
+	{
+		$s 			= '/<perch:(?!(form|input|label|error|success|';
+
+		$handlers = PerchSystem::get_registered_template_handlers();
+
+    	if (PerchUtil::count($handlers)) {
+    		foreach($handlers as $handlerClass) {
+    			$Handler = new $handlerClass;
+    			if ($Handler->tag_mask!='') $s .= $Handler->tag_mask.'|';
+    		}
+    	}
+
+		$s 			.= 'setting|url))[^>]*>/';
+
+		$contents	= preg_replace($s, '', $contents);
+
+		return $contents;
+	}
+
     public function remove_help($contents)
     {
-        $s = '/<perch:help[^>]*>.*?<\/perch:help>/s';
-        return preg_replace($s, '', $contents);     
+    	if (strpos($contents, 'perch:help')) {
+        	$s = '/<perch:help[^>]*>.*?<\/perch:help>/s';
+        	return preg_replace($s, '', $contents);
+        }else{
+        	return $contents;
+        } 
     }
 
     public function remove_noresults($contents)
     {
-        $s = '/<perch:noresults[^>]*>.*?<\/perch:noresults>/s';
-        return preg_replace($s, '', $contents);     
+    	if (strpos($contents, 'perch:noresults')) {
+        	$s = '/<perch:noresults[^>]*>.*?<\/perch:noresults>/s';
+        	return preg_replace($s, '', $contents);    
+        }else{
+        	return $contents;
+        }
     }
 
     public function use_noresults()
     {
-        $contents = $this->load();
-        $s = '/<perch:noresults[^>]*>(.*?)<\/perch:noresults>/s';
-        $count	= preg_match_all($s, $contents, $matches, PREG_SET_ORDER);
-	    $out = '';
-		if ($count > 0) {
-			foreach($matches as $match) {
-			    $out .= $match[1];
+    	$contents = $this->load();
+    	$out = '';
+    	if (strpos($contents, 'perch:noresults')) {
+	        $s = '/<perch:noresults[^>]*>(.*?)<\/perch:noresults>/s';
+	        $count	= preg_match_all($s, $contents, $matches, PREG_SET_ORDER);
+		    
+			if ($count > 0) {
+				foreach($matches as $match) {
+				    $out .= $match[1];
+				}	
 			}	
 		}
 		// replace template with string
 		$this->load($out);
     }
 
-	protected function load($template_string=false, $parse_includes=true)
+	public function load($template_string=false, $parse_includes=true)
 	{
 		$contents	= '';
 		
@@ -452,20 +467,22 @@ class PerchTemplate
 		}
 		
 		if ($parse_includes) {
-		    $s = '/<perch:template[^>]*path="([^"]*)"[^>]*>/';
-            $count	= preg_match_all($s, $contents, $matches, PREG_SET_ORDER);
-    	    $out = '';
-    		if ($count > 0) {
-    			foreach($matches as $match) {
-    			    $file = PERCH_TEMPLATE_PATH.DIRECTORY_SEPARATOR.$match[1];
-    			    if (file_exists($file)) {
-    			        $subtemplate = file_get_contents($file);
-        			    $contents = str_replace($match[0], $subtemplate, $contents);
-        			    PerchUtil::debug('Using sub-template: '.str_replace(PERCH_PATH, '', $file), 'template');
-    			    }
-    			}
-    			$this->cache[$this->template]	= $contents;	
-    		}
+			if (strpos($contents, 'perch:template')) {
+			    $s = '/<perch:template[^>]*path="([^"]*)"[^>]*>/';
+	            $count	= preg_match_all($s, $contents, $matches, PREG_SET_ORDER);
+	    	    $out = '';
+	    		if ($count > 0) {
+	    			foreach($matches as $match) {
+	    			    $file = PERCH_TEMPLATE_PATH.DIRECTORY_SEPARATOR.$match[1];
+	    			    if (file_exists($file)) {
+	    			        $subtemplate = file_get_contents($file);
+	        			    $contents = str_replace($match[0], $subtemplate, $contents);
+	        			    PerchUtil::debug('Using sub-template: '.str_replace(PERCH_PATH, '', $file), 'template');
+	    			    }
+	    			}
+	    			$this->cache[$this->template]	= $contents;	
+	    		}
+	    	}
 		}
 		
 		return $contents;
@@ -544,6 +561,8 @@ class PerchTemplate
 	            	if (isset($content_vars[$sideB])) {
 	            		$sideB = $this->_resolve_to_value($content_vars[$sideB]);
 	            	}
+
+	            	if ($tag->format() && $tag->format_both()) $sideB = $this->_format($tag, $sideB);
 	            }
 	                      
 	                      
@@ -637,18 +656,32 @@ class PerchTemplate
 	    return $template_contents;
 	}
 	
-	protected function parse_repeater($index_in_group, $opening_tag, $condition_contents, $exact_match, $template_contents, $content_vars)
+	protected function parse_repeater($type='every', $opening_tag, $condition_contents, $exact_match, $template_contents, $content_vars, $index_in_group)
 	{
 	    $tag = new PerchXMLTag($opening_tag);
+
+	    $positive = $condition_contents;
+        $negative = '';
+        	        
+        // else condition
+        if (strpos($condition_contents, 'perch:else')>0) {
+	        $parts   = preg_split('/<perch:else\s*\/>/', $condition_contents);
+            if (is_array($parts) && count($parts)>1) {
+                $positive = $parts[0];
+                $negative = $parts[1];
+            }
+        }
+
+
 	    
 	    if ($tag->count()) {
 	        $count = (int) $tag->count();
             $offset = 0;
             
             if ($count !== 0 && ($index_in_group % $count == 0)) {
-	            $template_contents = str_replace($exact_match, $condition_contents, $template_contents);
+	            $template_contents = str_replace($exact_match, $positive, $template_contents);
 	        }else{
-	            $template_contents = str_replace($exact_match, '', $template_contents);
+	            $template_contents = str_replace($exact_match, $negative, $template_contents);
 	        }
             
 	    }elseif ($tag->nth_child()) {
@@ -718,18 +751,18 @@ class PerchTemplate
 	        
 	        if (PerchUtil::count($nths)) {
                 if (in_array($index_in_group, $nths)) {
-                    $template_contents = str_replace($exact_match, $condition_contents, $template_contents);
+                    $template_contents = str_replace($exact_match, $positive, $template_contents);
                 }else{
-                    $template_contents = str_replace($exact_match, '', $template_contents);
+                    $template_contents = str_replace($exact_match, $negative, $template_contents);
                 }
 	        }else{
-	           $template_contents = str_replace($exact_match, '', $template_contents);  
+	           $template_contents = str_replace($exact_match, $negative, $template_contents);  
 	        }
 	        
 	        
 	    }else{
 	        // No count or nth-child, so scrub it.
-	        $template_contents = str_replace($exact_match, '', $template_contents);   
+	        $template_contents = str_replace($exact_match, $negative, $template_contents);   
 	    }
 	    
 	    
@@ -737,31 +770,6 @@ class PerchTemplate
 	    return $template_contents;
 	}
 	
-
-	protected function parse_url_tag($url, $Tag, $exact_match, $template_contents, $content_vars)
-	{
-		$new_url = $url;
-
-		if ($Tag->pattern() && $Tag->replacement()) {
-
-			$pattern = str_replace('#', '\#', $Tag->pattern()); 
-			$replacement = $Tag->replacement();
-
-			if (strpos($replacement, '}')) {
-				$this->sub_vars = $content_vars;
-				$replacement = preg_replace_callback('/{([A-Za-z0-9_\-]+)}/', array($this, "substitute_vars"), $replacement);
-				$this->sub_vars = array();
-			}
-
-			$new_url = preg_replace('#'.$pattern.'#', $replacement, $new_url);
-
-		}
-
-		$template_contents = str_replace($exact_match, $new_url, $template_contents);
-
-		return $template_contents;
-	}
-
 	public function enable_encoding()
 	{
 	    $this->autoencode = true;
@@ -809,6 +817,11 @@ class PerchTemplate
         }
         
         return $html;
+    }
+
+    public function format_value($tag, $value) 
+    {
+    	return $this->_format($tag, $value);
     }
 
     private function _resolve_to_value($val)
@@ -971,6 +984,89 @@ class PerchTemplate
         $sub_vars = $this->sub_vars;
         if (isset($sub_vars[$matches[1]])){
             return $sub_vars[$matches[1]];
+        }
+    }
+
+    private function parse_paired_tags($type, $empty_opener=false, $contents, $content_vars, $index_in_group=false, $callback='parse_conditional')
+    {
+		$pairs         = array();
+		$close_tag     = '</perch:'.$type.'>';
+		$close_tag_len = mb_strlen($close_tag);
+		$open_tag      = '<perch:'.$type.($empty_opener ? '' : ' ');
+
+		// escape hatch
+		$i = 0;
+		$max_loops = 100;
+
+		// loop through while we have closing tags
+    	while($close_pos = mb_strpos($contents, $close_tag)) {
+
+    		// we always have to go from the start, as the string length changes,
+    		// but stop at the closing tag
+    		$chunk = mb_substr($contents, 0, $close_pos);
+
+    		// search from the back of the chunk for the opening tag
+    		$open_pos = mb_strrpos($chunk, $open_tag);
+
+    		// get the pair html chunk
+    		$len = ($close_pos+$close_tag_len)-$open_pos;
+    		$pair_html = mb_substr($contents, $open_pos, $len);
+
+    		// find the opening tag - it's right at the start
+    		$opening_tag_end_pos = mb_strpos($pair_html, '>')+1;
+    		$opening_tag = mb_substr($pair_html, 0, $opening_tag_end_pos);
+
+    		// condition contents
+    		$condition_contents = mb_substr($pair_html, $opening_tag_end_pos, 0-$close_tag_len);
+
+    		// Do the business
+    		switch($callback) {
+    			case 'parse_conditional':
+    				$contents = $this->parse_conditional($type, $opening_tag, $condition_contents, $pair_html, $contents, $content_vars);
+    				break;
+
+    			case 'parse_repeater':
+    				$contents = $this->parse_repeater($type, $opening_tag, $condition_contents, $pair_html, $contents, $content_vars, $index_in_group);
+    				break;
+    		}
+
+    		// escape hatch counter
+    		$i++;
+    		if ($i > $max_loops) return $contents;
+    	}
+
+    	return $contents;
+    }
+
+    private function mb_fallback()
+    {
+    	// If one's not there, the others won't be
+        if (!extension_loaded('mbstring')) {
+            
+        	if (!function_exists('mb_strlen')) {
+	            function mb_strlen($a) {
+	                return strlen($a);
+	            }
+        	}
+
+            if (!function_exists('mb_strpos')) {
+	            function mb_strpos($a, $b) {
+	                return stripos($a, $b);
+	            }
+	        }
+	        
+	        if (!function_exists('mb_strrpos')) {
+	            function mb_strrpos($a, $b) {
+	                return strripos($a, $b);
+	            }
+	        }
+
+	        if (!function_exists('mb_substr')) {
+	            function mb_substr($a, $b, $c) {
+	                return substr($a, $b, $c);
+	            }
+	        }
+
         }
     }
 

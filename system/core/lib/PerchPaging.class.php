@@ -21,6 +21,15 @@ class PerchPaging
     		$this->current_page = (int)$_GET[$this->qs_param];
     	}
     }    
+
+    public function set_qs_param($qs_param)
+    {
+        if ($qs_param) $this->qs_param = $qs_param;
+        
+        if(isset($_GET[$this->qs_param]) && $_GET[$this->qs_param]!='') {
+            $this->current_page = (int)$_GET[$this->qs_param];
+        }
+    }
     
     public function select_sql()
     {
@@ -190,7 +199,23 @@ class PerchPaging
         $out['next_page_number'] = '';
             
         if (!$this->is_first_page()) {
-            $out['prev_url']    = preg_replace('/'.$this->qs_param.'=[0-9]+/', $this->qs_param.'='.($this->current_page()-1), $request_uri);
+
+            if (($this->current_page()-1)==1) {
+                // page 1, so don't include page=1
+                $out['prev_url']    = preg_replace('/'.$this->qs_param.'=[0-9]+/', '', $request_uri);
+            }else{
+                $out['prev_url']    = preg_replace('/'.$this->qs_param.'=[0-9]+/', $this->qs_param.'='.($this->current_page()-1), $request_uri);
+            }
+
+            // remove any trailing '?'
+            $out['prev_url']    = rtrim($out['prev_url'], '?');
+
+            // remove any trailing '&amp;'
+            if (substr($out['prev_url'], -5)=='&amp;') {
+                $out['prev_url'] = substr($out['prev_url'], 0, strlen($out['prev_url'])-5);
+            }
+
+
             $out['not_first_page'] = true;
             $out['prev_page_number'] = ($this->current_page()-1);
         }
@@ -205,7 +230,7 @@ class PerchPaging
             }
             $out['not_last_page'] = true;
         }
-        
+       
         return $out;
     }
     

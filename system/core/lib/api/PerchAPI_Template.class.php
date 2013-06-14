@@ -79,6 +79,11 @@ class PerchAPI_Template
         return $this->Template->apply_runtime_post_processing($html, $vars);
     }
 
+    public function use_noresults()
+    {
+        return $this->Template->use_noresults();
+    }
+
 }
 
 ?>

@@ -11,6 +11,7 @@
 						'core/apps/content/options',
 						'core/apps/content/delete',
 						'core/apps/content/denied',
+						'core/apps/content/republish',
 						'core/apps/content/reorder',
 						'core/apps/content/reorder/region'
 						), 

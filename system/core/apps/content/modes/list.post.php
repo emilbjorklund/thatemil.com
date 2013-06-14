@@ -66,6 +66,8 @@
 		} ?>
 
 
+        
+
 
 		<?php 
         	if ($CurrentUser->has_priv('content.pages.reorder')) { 
@@ -73,6 +75,14 @@
         <li class="fin"><a class="icon reorder" href="<?php echo PerchUtil::html(PERCH_LOGINPATH.'/core/apps/content/reorder/'); ?>"><?php echo PerchLang::get('Reorder Pages'); ?></a></li>
         <?php
         	}// reorder
+        ?>
+
+        <?php 
+            if ($CurrentUser->has_priv('content.pages.republish')) { 
+        ?>
+        <li class="fin"><a class="icon page" href="<?php echo PerchUtil::html(PERCH_LOGINPATH.'/core/apps/content/republish/'); ?>"><?php echo PerchLang::get('Republish'); ?></a></li>
+        <?php
+            }// republish
         ?>
     </ul>
 	

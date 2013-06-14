@@ -38,6 +38,7 @@
     	if (isset($_FILES['logo']) &&  (int) $_FILES['logo']['size'] > 0) {
     	    
     	    $filename = $_FILES['logo']['name'];
+            if (strpos($filename, '.php')!==false) $filename .= '.txt'; // diffuse PHP files  
             $target = PERCH_RESFILEPATH.'/'.$filename;
             if (file_exists($target)) {
                 $filename = time().'_'.$_FILES['logo']['name'];

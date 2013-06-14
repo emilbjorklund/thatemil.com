@@ -45,14 +45,22 @@ class PerchAPI_SubmittedForm
         $this->data  = $data;
         $this->files = $files;
     }
+
+    public function throw_error($type, $field='all')
+    {
+        $Perch = Perch::fetch();
+        $Perch->log_form_error($this->formID, $field, $type);
+    }
     
     public function validate()
     {
         $valid = true;
         
         if (file_exists(PERCH_PATH.$this->templatePath)){
-			$template = file_get_contents(PERCH_PATH.$this->templatePath);
-			$TemplatedForm = new PerchTemplatedForm($template);
+		    
+            $template = $this->_get_template_content();
+       
+       		$TemplatedForm = new PerchTemplatedForm($template);
 			
 			$TemplatedForm->refine($this->formID);
 			$fields = $TemplatedForm->get_fields();
@@ -303,7 +311,7 @@ class PerchAPI_SubmittedForm
         $antispam = array();
         
         if (file_exists(PERCH_PATH.$this->templatePath)){
-			$template = file_get_contents(PERCH_PATH.$this->templatePath);
+			$template = $this->_get_template_content();
 			$TemplatedForm = new PerchTemplatedForm($template);
 			
 			$TemplatedForm->refine($this->formID);
@@ -367,7 +375,11 @@ class PerchAPI_SubmittedForm
     private function _get_template_content()
     {
         if ($this->templateContent === false) {
-            $this->templateContent = file_get_contents(PERCH_PATH.$this->templatePath);
+            $content = file_get_contents(PERCH_PATH.$this->templatePath);
+
+            // parse subtemplates
+            $Template = new PerchTemplate();
+            $this->templateContent = $Template->load($content, true);
         }
         
         return $this->templateContent;

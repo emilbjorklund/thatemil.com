@@ -12,15 +12,15 @@ class PerchXMLTag
 	
 	private function parse()
 	{
-		$tag	= $this->tag;
-		
-		$count	= preg_match_all('/([a-z-]*)="([^"]*)"/', $tag, $matches, PREG_SET_ORDER);
-		
+		# http://ad.hominem.org/log/2005/05/quoted_strings.php - Thanks, Trent!
+		$count	= preg_match_all('{([a-z-]+)=[\"]([^\"\\\\]*(?:\\\\.[^\"\\\\]*)*)[\"]}', $this->tag, $matches, PREG_SET_ORDER);
+	
 		if ($count > 0) {
 			foreach($matches as $match) {
 				if ($match[2]!='false') {
 					$key = str_replace('-', '_', $match[1]);
-					$this->attributes[$key] = $match[2];
+					$val = str_replace('\"', '"', $match[2]);
+					$this->attributes[$key] = $val;
 				}
 			}
 		}

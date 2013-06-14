@@ -18,4 +18,7 @@
             PerchUtil::redirect(PERCH_LOGINPATH.'/core/apps/content/edit/?id='.$Region->id().'&itm='.$Item->itemID());
         }
 	}
+
+    $cols = $Region->get_edit_columns();
+    //PerchUtil::debug($cols);
 ?>

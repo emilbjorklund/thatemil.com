@@ -6,7 +6,6 @@
             $file = PERCH_CORE . '/lib/' . $class_name . '.class.php';
         }
         
-        
         if (file_exists($file)) {
             include $file;
             return true;
@@ -18,6 +17,8 @@
         
     if (get_magic_quotes_runtime()) set_magic_quotes_runtime(false);
     
+    if (extension_loaded('mbstring')) mb_internal_encoding('UTF-8');
+
     if (defined('PERCH_TZ')) {
         date_default_timezone_set(PERCH_TZ);
     }else{

@@ -1,5 +1,5 @@
 <?php include (PERCH_PATH.'/core/inc/sidebar_start.php'); ?>
-    <p><?php echo PerchLang::get('You may update the user’s personal details, email address and password here. If you do not wish to send a new password by email, just check the box.'); ?></p>
+    <p><?php echo PerchLang::get('You may update the user’s personal details, email address and password here. If you wish to send a new password by email, just check the box.'); ?></p>
 
 	
 <?php include (PERCH_PATH.'/core/inc/sidebar_end.php'); ?>

@@ -76,30 +76,77 @@
     <?php
         if (PerchUtil::count($items)) {
             
-            echo '<table class="d">';
+            echo '<table class="d itemlist">';
                 echo '<thead>';
                     echo '<tr>';
-                        echo '<th class="first">'.PerchLang::get('Title').'</th>';
+                        foreach($cols as $col) {
+                            echo '<th>'.PerchUtil::html($col['title']).'</th>';
+                        }
                         echo '<th class="last action"></th>';
                     echo '</tr>';
                 echo '</thead>';
             
                 echo '<tbody>';
+                $Template = new PerchTemplate;
                 $i = 1;
                 foreach($items as $item) {
                     echo '<tr>';
-                        echo '<td>';
-                            if (isset($item['_title'])) {
-                                $title = $item['_title'];
+                        $first = true;
+                        foreach($cols as $col) {
+
+                            if ($first) { 
+                                echo '<td class="primary">';
+                                echo '<a href="'.PerchUtil::html(PERCH_LOGINPATH).'/core/apps/content/edit/?id=' . PerchUtil::html($Region->id()) . '&amp;itm='.PerchUtil::html($item['itemID']).'">';
                             }else{
-                                $title = PerchLang::get('Item').' '.$i;
+                                echo '<td>';
                             }
-                        
-                            echo '<a href="'.PerchUtil::html(PERCH_LOGINPATH).'/core/apps/content/edit/?id=' . PerchUtil::html($Region->id()) . '&amp;itm='.PerchUtil::html($item['itemID']).'" class="">'.PerchUtil::html($title).'</a>';
-                        echo '<td>';
-                        
-                            echo '<a href="'.PerchUtil::html(PERCH_LOGINPATH).'/core/apps/content/delete/item/?id=' . PerchUtil::html($Region->id()) . '&amp;itm='.PerchUtil::html($item['itemID']).'" class="delete inline-delete">'.PerchLang::get('Delete').'</a>';
+
+                            if ($col['id']=='_title') {
+                                if (isset($item['_title'])) {
+                                    $title = $item['_title'];
+                                }else{
+                                    $title = PerchLang::get('Item').' '.$i;
+                                }
+                            }else{
+                                if (isset($item[$col['id']])) {
+                                    $title = $item[$col['id']];    
+                                }else{
+                                    if ($first) {
+                                        if (isset($item['_title'])) {
+                                            $title = $item['_title'];
+                                        }else{
+                                            $title = PerchLang::get('Item').' '.$i;
+                                        }
+                                    }else{
+                                        $title = '-';
+                                    }
+                                }
+                                
+                            }
+
+                            if ($col['Tag'] && $col['Tag']->type()) {
+
+                                $FieldType = PerchFieldTypes::get($col['Tag']->type(), false, $col['Tag']);
+
+                                $title = $FieldType->render_admin_listing($title);
+
+                                if ($col['Tag']->format()) {
+                                    $title = $Template->format_value($col['Tag'], $title);
+                                }
+                            }
                             
+                            if ($first && trim($title)=='') $title = '#'.$item['_id'];
+
+                            echo $title;
+
+                            if ($first) echo '</a>';
+                             
+                            echo '</td>';
+
+                            $first = false;
+                        }
+                        echo '<td>';
+                            echo '<a href="'.PerchUtil::html(PERCH_LOGINPATH).'/core/apps/content/delete/item/?id=' . PerchUtil::html($Region->id()) . '&amp;itm='.PerchUtil::html($item['itemID']).'" class="delete inline-delete">'.PerchLang::get('Delete').'</a>';
                         echo '</td>';
                     echo '</tr>';
                     $i++;

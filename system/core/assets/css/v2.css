@@ -948,6 +948,10 @@ table.factsheet td {
 	color: #333;
 }
 
+table.itemlist td {
+	vertical-align: top;
+}
+
 .primary a:link,
 .primary a:visited {
 	color: #486660;
@@ -1253,6 +1257,35 @@ form .checkboxes div.checkbox {
 	margin-bottom: 15px;
 }
 
+form fieldset.checkboxes.multi-col {
+   -moz-column-count: auto;
+   -moz-column-width: 200px;
+   -moz-column-gap: 20px;
+   -webkit-column-count: auto;
+   -webkit-column-width: 200px;
+   -webkit-column-gap: 20px;
+   column-count: auto;
+   column-width: 200px;
+   column-gap: 20px;
+   margin-left: 230px;
+}
+
+form .checkboxes.multi-col div.checkbox {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+form fieldset.multi-col div.checkbox input {
+	margin-left: 0;
+}
+
+form fieldset.multi-col.checkboxes strong {
+	position: absolute;
+	left: 10px;
+}
+
+
+
 form .text {
 	width: 280px;
 	border: 1px solid #DDDDDD;
@@ -1322,6 +1355,10 @@ form .topadd {
 
 .editor-wrap {
 	float: left;
+}
+
+form .markItUp textarea.text {
+	font-size: 1.154em;
 }
 
 textarea.large {
@@ -1543,10 +1580,22 @@ form p.stuck a:visited {
 	.sidebar-open form .checkboxes div.checkbox:last-of-type {
 		margin-bottom: 15px;
 	}
+
+	.sidebar-open form fieldset.checkboxes.multi-col {
+		margin-left: 0;
+		margin-top: 25px;
+		position: relative;
+	}
+
+	.sidebar-open form fieldset.multi-col.checkboxes strong {
+		position: absolute;
+		left: 0;
+		top: -25px;
+	}
 }
 
 @media screen and (max-width: 840px) {
-	form label {
+	form .field label {
 		float: none;
 		display: block;
 		margin-bottom: 10px;
@@ -1576,6 +1625,18 @@ form p.stuck a:visited {
 
 	form .checkboxes div.checkbox:last-of-type {
 		margin-bottom: 15px;
+	}
+
+	form fieldset.checkboxes.multi-col {
+		margin-left: 0;
+		margin-top: 25px;
+		position: relative;
+	}
+
+	form fieldset.multi-col.checkboxes strong {
+		position: absolute;
+		left: 0;
+		top: -25px;
 	}
 
 }
@@ -2164,6 +2225,24 @@ span.draft {
 	background-position: 10px -2137px;
 }
 
+
+.smartbar a.page:link,
+.smartbar a.page:visited {
+	background-position: 10px -995px;
+	padding-left: 35px;
+}
+
+.smartbar a.page:hover,
+.smartbar a.page:active {
+	color: #000;
+	background-position: 10px -1835px;
+}
+
+.smartbar .selected a.page:link,
+.smartbar .selected a.page:visited {
+	background-position: 10px -1831px;
+}
+
 .smartbar a.download:link,
 .smartbar a.download:visited {
 	background-position: 10px -1368px;
@@ -2448,6 +2527,37 @@ ul.updates li.success {
 }
 
 ul.updates li.failure {
+	background-position: 10px -702px;
+	padding-left: 30px;
+}
+
+/* importables */
+
+ul.importables {
+	margin-bottom: 20px;
+}
+
+ul.importables li {
+	background-color: rgb(246,246,246);
+	padding: 10px 5px 10px 10px;
+	border-bottom: 1px solid #fff;
+	color: rgba(0,0,0,0.5);
+	text-decoration: none;
+	font-size: 1em;
+}
+
+ul.importables li .action {
+	float: right;
+	margin-top: -3px;
+	margin-right: 5px;
+}
+
+ul.importables li.success {
+	background-position: 10px -621px;
+	padding-left: 30px;
+}
+
+ul.importables li.failure {
 	background-position: 10px -702px;
 	padding-left: 30px;
 }

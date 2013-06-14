@@ -59,6 +59,7 @@ class PerchContent_Page extends PerchBase
             PerchUtil::debug('Could not find parent page');
             $data['pageDepth'] = 1;
             $data['pageTreePosition'] = '000-'.str_pad($data['pageOrder'], 3, '0', STR_PAD_LEFT);
+            $data['pageParentID'] = 0;
         }
         
         
@@ -171,7 +172,8 @@ class PerchContent_Page extends PerchBase
                     $data = array(
                         'pageID'=>$this->id(),
                         'groupID'=>(int)$groupID,
-                        'pageTreePosition'=>'000-000'
+                        'pageTreePosition'=>'000-000',
+                        'pageDepth'=>$this->pageDepth(),
                     );
                     $this->db->insert(PERCH_DB_PREFIX.'navigation_pages', $data);
                 }

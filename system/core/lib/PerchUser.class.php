@@ -11,8 +11,7 @@ class PerchUser extends PerchBase
     {
         $sender_name = PERCH_EMAIL_FROM_NAME;
         
-        $Email = new PerchEmail('user-welcome');
-        $Email->subject('Your CMS Account Details');
+        $Email = new PerchEmail('user-welcome.html');
         
         $Email->recipientEmail($this->userEmail());
         $Email->senderName($sender_name);
@@ -48,8 +47,8 @@ class PerchUser extends PerchBase
         
         $this->update($data);
         
-        $Email = new PerchEmail('password-reset');
-        $Email->subject('Your CMS password has been reset');
+        $Email = new PerchEmail('password-reset.html');
+        //$Email->subject('Your CMS password has been reset');
         
         $Email->recipientEmail($this->userEmail());
         $Email->senderName(PERCH_EMAIL_FROM_NAME);

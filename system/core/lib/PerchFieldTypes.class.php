@@ -10,7 +10,6 @@ class PerchFieldTypes
         
         $classname = 'PerchFieldType_'.$type;
         
-        
         if (class_exists($classname)){
             $r = new $classname($Form, $Tag, $app_id);
             if (!in_array($classname, self::$_seen)) {
@@ -81,6 +80,17 @@ class PerchFieldType_url extends PerchFieldType
     }
 }
 
+/* ------------ COLOR ------------ */
+
+class PerchFieldType_color extends PerchFieldType
+{
+    public function render_inputs($details=array())
+    {
+        return $this->Form->text($this->Tag->input_id(), $this->Form->get($details, $this->Tag->id(), $this->Tag->default(), $this->Tag->post_prefix()), $this->Tag->size(), $this->Tag->maxlength(), 'color');
+    }
+}
+
+
 /* ------------ EMAIL ------------ */
 
 class PerchFieldType_email extends PerchFieldType
@@ -107,17 +117,62 @@ class PerchFieldType_date extends PerchFieldType
 {
     public function render_inputs($details=array())
     {
-        if ($this->Tag->time()) {
-            return $this->Form->datetimepicker($this->Tag->input_id(), $this->Form->get($details, $this->Tag->id(), $this->Tag->default(), $this->Tag->post_prefix()));
+        if ($this->Tag->native()) {
+            if ($this->Tag->time()) {
+                if ($this->Tag->time()=='local'){
+                    $ftype = 'datetime-local'; 
+                    $format = 'Y-m-d\TH:i';
+                }else{
+                    $ftype = 'datetime';
+                    $format = 'Y-m-d\TH:i\Z';
+                }
+
+                if (isset($details[$this->Tag->id()])) {
+                    $details[$this->Tag->id()] = date($format, strtotime($details[$this->Tag->id()]));
+                }
+
+                return $this->Form->text($this->Tag->input_id(), $this->Form->get($details, $this->Tag->id(), $this->Tag->default(), $this->Tag->post_prefix()), $this->Tag->size(), $this->Tag->maxlength(), $ftype);
+            }else{
+                if (isset($details[$this->Tag->id()])) {
+                    $details[$this->Tag->id()] = date('Y-m-d', strtotime($details[$this->Tag->id()]));
+                }
+                return $this->Form->text($this->Tag->input_id(), $this->Form->get($details, $this->Tag->id(), $this->Tag->default(), $this->Tag->post_prefix()), $this->Tag->size(), $this->Tag->maxlength(), 'date');
+            }
         }else{
-            return $this->Form->datepicker($this->Tag->input_id(), $this->Form->get($details, $this->Tag->id(), $this->Tag->default(), $this->Tag->post_prefix()));
+            $field_order = 'dmy';
+            if ($this->Tag->fieldorder()) {
+                $field_order = $this->Tag->fieldorder();
+            }
+
+            if ($this->Tag->time()) {
+                return $this->Form->datetimepicker($this->Tag->input_id(), $this->Form->get($details, $this->Tag->id(), $this->Tag->default(), $this->Tag->post_prefix()), $field_order, $this->Tag->allowempty());
+            }else{
+                return $this->Form->datepicker($this->Tag->input_id(), $this->Form->get($details, $this->Tag->id(), $this->Tag->default(), $this->Tag->post_prefix()), $field_order, $this->Tag->allowempty());
+            }
         }
+
+        
     }
     
     public function get_raw($post=false, $Item=false)
     {
         $id = $this->Tag->id();
-        $this->raw_item = $this->Form->get_date($id, $post);
+
+        if ($this->Tag->native()) {
+            if ($post===false) {
+                $post = $_POST;
+            }
+            
+            if (isset($post[$id])) {
+                $raw = trim(stripslashes($post[$id]));
+                $this->raw_item = date('Y-m-d H:i:s', strtotime($raw));
+            }
+
+        }else{
+            $this->raw_item = $this->Form->get_date($id, $post);
+        }
+
+        
         return $this->raw_item;
     }
     
@@ -146,6 +201,7 @@ class PerchFieldType_time extends PerchFieldType
         return $this->raw_item;
     }
 }
+
 
 /* ------------ SLUG ------------ */
 
@@ -236,6 +292,10 @@ class PerchFieldType_textarea extends PerchFieldType
         if ($this->Tag->imageheight())    $data_atrs['height']  = $this->Tag->imageheight();
         if ($this->Tag->imagecrop())      $data_atrs['crop']    = $this->Tag->imagecrop();
         if ($this->Tag->imageclasses())   $data_atrs['classes'] = $this->Tag->imageclasses();
+        if ($this->Tag->imagequality())   $data_atrs['quality'] = $this->Tag->imagequality();
+        if ($this->Tag->imagesharpen())   $data_atrs['sharpen'] = $this->Tag->imagesharpen();
+        if ($this->Tag->imagedensity())   $data_atrs['density'] = $this->Tag->imagedensity();
+        if ($this->Tag->bucket())         $data_atrs['bucket']  = $this->Tag->bucket();
 
         
         if (isset($details[$this->Tag->input_id()]) && $details[$this->Tag->input_id()]!='') {
@@ -455,6 +515,7 @@ class PerchFieldType_image extends PerchFieldType
 {
     public static $file_paths = array();
     
+
     
     public function render_inputs($details=array())
     {
@@ -566,9 +627,12 @@ class PerchFieldType_image extends PerchFieldType
                         $tmp['h'] = $result['h'];
                         $tmp['path'] = $result['file_name'];
                         $tmp['size'] = filesize($result['file_path']);
+                        $tmp['mime'] = (isset($result['mime']) ? $result['mime'] : '');   
                         
                         $store['sizes'][$variant_key] = $tmp;
                     }
+                    unset($result);
+                    unset($PerchImage);
                 }
                 
                 
@@ -604,9 +668,15 @@ class PerchFieldType_image extends PerchFieldType
                                 $tmp['density'] = ($Tag->density() ? $Tag->density() : '1');
                                 $tmp['path'] = $result['file_name'];
                                 $tmp['size'] = filesize($result['file_path']);
-                                
+                                $tmp['mime'] = (isset($result['mime']) ? $result['mime'] : '');    
+
                                 $store['sizes'][$variant_key] = $tmp;
+
+                                unset($tmp);
                             }
+
+                            unset($result);
+                            unset($PerchImage);
                         }
                     }
                 }
@@ -695,6 +765,10 @@ class PerchFieldType_image extends PerchFieldType
 						return $item['path'];
 						break;
 
+                    case 'mime':
+                        return $item['mime'];
+                        break;
+
                     case 'tag':
                         $attrs = array(
                             'src'=> $this->_get_image_src($orig_item, $item),
@@ -746,6 +820,41 @@ class PerchFieldType_image extends PerchFieldType
     public function get_search_text($raw=false)
     {
         return '';
+    }
+
+    public function render_admin_listing($details=false)
+    {
+        $s = '';
+
+        if (is_array($details)) {
+
+            if ($this->Tag->output()) {
+                return $this->get_processed($details);
+            }
+
+            $Perch = Perch::fetch();
+            $bucket = $Perch->get_resource_bucket($this->Tag->bucket());
+
+            $PerchImage = new PerchImage;          
+            
+            $json = $details;
+
+            $bucket = $Perch->get_resource_bucket($json['bucket']);
+
+            if (isset($json['sizes']['thumb'])) {
+                $image_src  = $json['sizes']['thumb']['path'];
+                $image_w    = $json['sizes']['thumb']['w'];
+                $image_h    = $json['sizes']['thumb']['h'];
+            }
+            
+            $image_path = PerchUtil::file_path($bucket['file_path'].'/'.$image_src);
+
+            if (file_exists($image_path)) {
+                $s .= '<img src="'.PerchUtil::html($bucket['web_path'].'/'.$image_src).'" width="'.($image_w/2).'" height="'.($image_h/2).'" alt="Preview" />';
+            }
+        }
+            
+        return $s;
     }
 
     private function _get_image_src($orig_item, $item)
@@ -827,6 +936,7 @@ class PerchFieldType_map extends PerchFieldType
     {
         $Perch = Perch::fetch();
         $Perch->add_foot_content('<script type="text/javascript" src="http://maps.google.com/maps/api/js?sensor=false"></script>');
+        $Perch->add_javascript(PERCH_LOGINPATH.'/core/assets/js/maps.js');
     }
     
     
@@ -1050,33 +1160,39 @@ class PerchFieldType_dataselect extends PerchFieldType
 
 }
 
+/* ------------ COMPOSITE ------------ */
 
-/* ---- TAG LIST ---- */
-
-class PerchFieldType_taglist extends PerchFieldType
+class PerchFieldType_composite extends PerchFieldType
 {
-
-    public function add_page_resources()
-    {
-        $Perch = Perch::fetch();
-        $Perch->add_foot_content('<script type="text/javascript" src="'.PerchUtil::html(PERCH_LOGINPATH).'/core/assets/js/tag-it.min.js"></script>');
-        $Perch->add_head_content('<link rel="stylesheet" type="text/css" href="'.PerchUtil::html(PERCH_LOGINPATH).'/core/assets/css/jquery.tagit.css" />');
-        $Perch->add_head_content('<link rel="stylesheet" type="text/css" href="'.PerchUtil::html(PERCH_LOGINPATH).'/core/assets/css/tagit.ui-zendesk.css" />');
-    }
-
-
     public function render_inputs($details=array())
     {
-        $s = parent::render_inputs($details);
-
-        $js = '<script type="text/javascript">';
-        $js .= "jQuery('#".$this->Tag->input_id()."').tagit()";
-        $js .= '</script>';
+        return '';
+    }
+    
+    public function get_raw($post=false, $Item=false)
+    {
         
-        $Perch = Perch::fetch();
-        $Perch->add_foot_content($js);
+        $fields = explode(' ', $this->Tag->for());
+        if (PerchUtil::count($fields)) {
 
-        return $s;
+            $out = array();
+            foreach($fields as $field) {
+                $field = trim($field);
+                if (isset($post[$field]) && $post[$field]!='') {
+                    $out[] = trim(stripslashes($post[$field]));
+                }
+            }
+            PerchUtil::debug($_POST);
+            $join = ' ';
+            if ($this->Tag->join()) {
+                $join = $this->Tag->join();
+            }
+            return implode($join, $out);
+
+        }
+    
+        
+        return '';
     }
 }
 

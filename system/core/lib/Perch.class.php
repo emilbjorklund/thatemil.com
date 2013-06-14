@@ -4,7 +4,7 @@ class Perch
 {
     static protected $instance;
 	
-    public $version = '2.1.4';
+    public $version = '2.2.8';
     
     private $page        = false;
     public $debug        = false;
@@ -13,8 +13,11 @@ class Perch
     public $help_html    = '';
     public $form_count   = 0;
     public $form_errors  = array();
-
+    
     private $bucket_list = false;
+
+    protected $layout_vars  = array();
+    public    $layout_depth = 1;
 
     public $admin        = false;
     
@@ -44,7 +47,7 @@ class Perch
         return self::$instance;
 	}
     
-    public function get_page($request_uri=false)
+    public function get_page($request_uri=false, $hide_default_doc=false)
     {
         if ($request_uri) {
             $out = str_replace('index.php', '', strtolower($_SERVER['SCRIPT_NAME']));
@@ -62,6 +65,10 @@ class Perch
         if ($this->page != false) {
             $this->page = preg_replace('/(\/)\\1+/', '/', $this->page);
         }
+
+        if ($hide_default_doc) {
+            $this->page = str_replace(PERCH_DEFAULT_DOC, '', $this->page);
+        }               
                 
         return $this->page;
     }
@@ -142,6 +149,29 @@ class Perch
         }
 
         return $bucket;
+    }
+
+    public function set_layout_vars($vars) 
+    {
+        if ($this->layout_depth > 1 && is_array($vars)) {
+            $this->layout_vars = array_merge($this->layout_vars, $vars);
+        }else{
+            $this->layout_vars = $vars;    
+        }      
+    }
+
+    public function get_layout_vars()
+    {
+        return $this->layout_vars;
+    }
+
+    public function get_layout_var($var)
+    {
+        if (isset($this->layout_vars[$var])) {
+            return $this->layout_vars[$var];
+        }
+
+        return '';
     }
       
     

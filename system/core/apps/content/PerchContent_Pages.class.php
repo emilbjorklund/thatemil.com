@@ -199,13 +199,14 @@ class PerchContent_Pages extends PerchFactory
         if ($groupID!==false) {
             $table = PERCH_DB_PREFIX.'navigation_pages';
             $where = 'groupID='.$this->db->pdb($groupID).' AND ';
+            $sql = 'SELECT np.pageTreePosition FROM '.$this->table.' p, '.PERCH_DB_PREFIX.'navigation_pages np WHERE np.pageID=p.pageID AND np.groupID='.$this->db->pdb($groupID).' AND p.pagePath='.$this->db->pdb($pagePath).' LIMIT 1';
         }else{
             $table = $this->table;
             $where = '';
+
+            $sql = 'SELECT pageTreePosition FROM '.$this->table.' WHERE pagePath='.$this->db->pdb($pagePath).' LIMIT 1';
         }
-
-
-        $sql = 'SELECT pageTreePosition FROM '.$table.' WHERE '.$where.' pagePath='.$this->db->pdb($pagePath).' LIMIT 1';
+       
         $pageTreePosition = $this->db->get_value($sql);
         
         if ($pageTreePosition) {
@@ -392,8 +393,17 @@ class PerchContent_Pages extends PerchFactory
                     // Tree position
                     if ($data['pageParentID']==0) {
                         $data['pageTreePosition'] = '000-'.str_pad($data['pageOrder'], 3, '0', STR_PAD_LEFT);
+                        $base = '000-';
                     }else{
                         $data['pageTreePosition'] = $parent['pageTreePosition'].'-'.str_pad($data['pageOrder'], 3, '0', STR_PAD_LEFT);
+                        $base = $parent['pageTreePosition'].'-';
+                    }
+
+                    $count = (int) $data['pageOrder'];
+
+                    while($this->db->get_count('SELECT COUNT(*) FROM '.$this->table.' WHERE pageTreePosition='.$this->db->pdb($data['pageTreePosition']))>0) {
+                        $data['pageTreePosition'] = $base.str_pad($count, 3, '0', STR_PAD_LEFT);
+                        $count++;
                     }
                                         
                     $data['pageNew'] = 0;
@@ -454,10 +464,14 @@ class PerchContent_Pages extends PerchFactory
                 }
                 
                 $parentPageID = $ParentPage->id();
+
+                $data['pageDepth']    = $ParentPage->pageDepth() + 1;
                 
             }else{
                 $pageSection = '/';
                 $parentPageID = 0;
+                $data['pageParentID'] = '0';
+                $data['pageDepth']    = '1';
             }
             
             
@@ -495,9 +509,15 @@ class PerchContent_Pages extends PerchFactory
                             $r = str_replace('//', '/', $r);
                             $data['pagePath'] = $r; 
                             
+
                             // Insert into the DB
                             $Page =  $this->create($data);
                             
+
+                            if (!is_object($Page)) {
+                                PerchUtil::output_debug();
+                            }
+
                             // Set its position in the tree
                             $Page->update_tree_position($parentPageID);
 
@@ -632,7 +652,7 @@ class PerchContent_Pages extends PerchFactory
             
             // Set its position in the tree
             if (is_object($Page)) {
-                $Page->update_tree_position($ParentPage->id());
+                if (is_object($ParentPage)) $Page->update_tree_position($ParentPage->id());
                 return $Page;
             }
             
@@ -659,10 +679,14 @@ class PerchContent_Pages extends PerchFactory
                 }
                 
                 $parentPageID = $ParentPage->id();
+
+                $data['pageDepth']    = $ParentPage->pageDepth() + 1;
                 
             }else{
                 $pageSection = '/';
                 $parentPageID = 0;
+                $data['pageParentID'] = '0';
+                $data['pageDepth']    = '1';
             }
 
 
@@ -772,6 +796,7 @@ class PerchContent_Pages extends PerchFactory
         $skip_template      = $opts['skip-template'];
         $add_trailing_slash = $opts['add-trailing-slash'];
         $navgroup           = $opts['navgroup'];
+        $include_hidden     = $opts['include-hidden'];
         
         $template = 'navigation/'.$template;
         
@@ -802,7 +827,13 @@ class PerchContent_Pages extends PerchFactory
                 $sql = 'SELECT p.*, np.* FROM '.PERCH_DB_PREFIX.'navigation_pages np, '.$this->table.' p  
                         WHERE p.pageID=np.pageID AND np.groupID='.$this->db->pdb($groupID).' AND p.pageNew=0 AND np.pageTreePosition IN ('.$this->db->implode_for_sql_in($values).') ORDER BY np.pageTreePosition';
             }else{
-                $sql = 'SELECT * FROM '.$this->table.' WHERE pageHidden=0 AND pageNew=0 AND pageTreePosition IN ('.$this->db->implode_for_sql_in($values).') ORDER BY pageTreePosition'; 
+                $sql = 'SELECT * FROM '.$this->table.' WHERE ';
+                
+                if (!$include_hidden) {
+                    $sql .= 'pageHidden=0 AND ';
+                }
+                
+                $sql .= 'pageNew=0 AND pageTreePosition IN ('.$this->db->implode_for_sql_in($values).') ORDER BY pageTreePosition'; 
             }
 
             
@@ -851,6 +882,7 @@ class PerchContent_Pages extends PerchFactory
         $skip_template         = $opts['skip-template'];
         $add_trailing_slash    = $opts['add-trailing-slash'];
         $navgroup              = $opts['navgroup'];
+        $include_hidden        = $opts['include-hidden'];
 
         $template = 'navigation/'.$template;
 
@@ -879,8 +911,13 @@ class PerchContent_Pages extends PerchFactory
                         ORDER BY np.pageTreePosition '.($type=='prev' ? 'DESC' : 'ASC').'
                         LIMIT 1';
                 }else{
-                    $sql = 'SELECT * FROM '.$this->table.' 
-                        WHERE pageHidden=0 AND pageParentID='.$this->db->pdb($root['pageParentID']).' AND pageDepth='.$this->db->pdb($root['pageDepth']).' 
+                    $sql = 'SELECT * FROM '.$this->table.' WHERE ';
+
+                    if (!$include_hidden) {
+                        $sql .= 'pageHidden=0 AND ';
+                    }
+
+                    $sql .='pageParentID='.$this->db->pdb($root['pageParentID']).' AND pageDepth='.$this->db->pdb($root['pageDepth']).' 
                             AND pageTreePosition '.($type=='prev' ? '<' : '>').' '.$this->db->pdb($root['pageTreePosition']).'
                         ORDER BY pageTreePosition '.($type=='prev' ? 'DESC' : 'ASC').'
                         LIMIT 1';
@@ -1005,6 +1042,8 @@ class PerchContent_Pages extends PerchFactory
         $add_trailing_slash    = $opts['add-trailing-slash'];
         $navgroup              = $opts['navgroup'];
         $access_tags           = $opts['access-tags'];
+        $include_hidden        = $opts['include-hidden'];
+        $from_level            = $opts['from-level'];
 
 
         if ($access_tags == false) $access_tags = array();
@@ -1052,6 +1091,22 @@ class PerchContent_Pages extends PerchFactory
                 $root = $this->db->get_row($sql);
             }
 
+            if ($from_level!==false) {
+                $parts = explode('-', $root['pageTreePosition']);
+                if (PerchUtil::count($parts)) {
+                    $new_root_tree_position = implode('-', array_slice($parts, 0, (int)$from_level+1));
+                    
+                    if ($new_root_tree_position) {
+                        if ($navgroup) {
+                            $sql = 'SELECT pageID, pageParentID, pageDepth, pageTreePosition FROM '.PERCH_DB_PREFIX.'navigation_pages WHERE groupID='.$this->db->pdb($groupID).' AND pageTreePosition='.$this->db->pdb($new_root_tree_position).' LIMIT 1';
+                        }else{
+                            $sql = 'SELECT pageID, pageParentID, pageDepth, pageTreePosition FROM '.$this->table.' WHERE pageTreePosition='.$this->db->pdb($new_root_tree_position).' LIMIT 1';    
+                        }
+                        
+                        $root = $this->db->get_row($sql);
+                    }
+                }
+            }
             
             $min_level = (int)$root['pageDepth'];
             $max_level = $min_level + $levels;
@@ -1083,7 +1138,11 @@ class PerchContent_Pages extends PerchFactory
              $sql .= ' ORDER BY np.pageTreePosition ASC';
 
         }else{
-            $sql = 'SELECT * FROM '.$this->table.' WHERE pageHidden=0 AND pageNew=0 ';    
+            $sql = 'SELECT * FROM '.$this->table.' WHERE pageNew=0 ';    
+
+            if (!$include_hidden) {
+                $sql .= ' AND pageHidden=0 ';
+            }
 
             // if from path is set
             if ($root) {

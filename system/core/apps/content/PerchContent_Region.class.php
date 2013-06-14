@@ -490,7 +490,7 @@ class PerchContent_Region extends PerchBase
                                     $data['pageID']     = (int) $Item->pageID();
                                     $data['itemRev']    = (int) $Item->itemRev();
                                     $data['indexKey']   = $this->db->pdb(substr($index_item['key'], 0, 64));
-                                    $data['indexValue'] = $this->db->pdb(substr($index_item['value'], 0, 256));
+                                    $data['indexValue'] = $this->db->pdb(substr($index_item['value'], 0, 255));
 
                                     $values[] = '('.implode(',', $data).')';
 
@@ -580,7 +580,6 @@ class PerchContent_Region extends PerchBase
     }
 
 
-
     public function clean_up_resources()
     {
         $subquery = 'SELECT resourceID FROM '.PERCH_DB_PREFIX.'content_resources';
@@ -593,6 +592,71 @@ class PerchContent_Region extends PerchBase
                 $Resource->delete();
             }
         }
+    }
+
+    public function get_edit_columns()
+    {
+        $column_ids = $this->get_option('column_ids');
+
+        if ($column_ids) {
+            $cols = explode(',', $column_ids);
+
+            $Template = new PerchTemplate('content/'.$this->regionTemplate(), 'content');
+
+            $out = array();
+
+            foreach($cols as $col) {
+                $col = trim($col);
+                $output = false;
+
+                if (strpos($col, '[')) {
+                    $parts = explode('[', $col);
+                    $col = $parts[0];
+                    $output = trim($parts[1], ']');
+                }
+
+                $Tag = $Template->find_tag($col, $output);
+
+                if (is_object($Tag)) {
+                    $label = $col;
+                    if ($Tag->label()) {
+                        $label = $Tag->label();
+                    }
+
+                    $out[] = array(
+                                'id'=>$col,
+                                'title'=>$label,
+                                'Tag'=>$Tag,
+                            );
+                }else{
+                    $label = $col;
+                    if ($label=='_title') {
+                        $label = PerchLang::get('Title');
+                    }
+
+                    $out[] = array(
+                                'id'=>$col,
+                                'title'=>$label,
+                                'Tag'=>false,
+                            );
+                }
+
+            }
+
+            return $out;
+        }
+
+        return array(array(
+                'id' => '_title', 
+                'title' => PerchLang::get('Title'),
+                'Tag' => false,
+                ));
+    }
+
+    public function get_template_tag_ids()
+    {
+        $Template = new PerchTemplate('content/'.$this->regionTemplate(), 'content');
+        return $Template->find_all_tag_ids();
     }
 
 

@@ -183,11 +183,11 @@ class PerchAPI_Form extends PerchForm
     }
     
     
-    public function checkbox_set($id, $label, $options, $values=false, $class='', $limit=false)
+    public function checkbox_set($id, $label, $options, $values=false, $class='', $limit=false, $container_class='')
     {
         $out = $this->field_start($id);
         
-        $out .= '<fieldset class="checkboxes"><strong>'.PerchUtil::html($this->Lang->get($label)).'</strong>';
+        $out .= '<fieldset class="checkboxes '.$container_class.'"><strong>'.PerchUtil::html($this->Lang->get($label)).'</strong>';
         $i = 0;
         
         foreach($options as $option) {
@@ -308,11 +308,10 @@ class PerchAPI_Form extends PerchForm
         return $this->get($array, $id, $value);
     }
     
-    public function set_required_fields_from_template($Template)
+    public function set_required_fields_from_template($Template, $seen_tags=array())
     {   
         $tags       = $Template->find_all_tags();
-
-        $seen_tags = array();
+        
         if (is_array($tags)) {
             foreach($tags as $tag) {
 
@@ -392,7 +391,7 @@ class PerchAPI_Form extends PerchForm
         return $out;
     }
     
-    public function receive_from_template_fields($Template, $previous_values, $perch_only=true)
+    public function receive_from_template_fields($Template, $previous_values, $perch_only=true, $fixed_fields=false)
     {
         $tags   = $Template->find_all_tags();
         
@@ -403,16 +402,21 @@ class PerchAPI_Form extends PerchForm
         $image_folder_writable = is_writable(PERCH_RESFILEPATH);
         
         if (is_array($tags)) {
+                                        
+            $seen_tags = array();  
             
-                
-            $seen_tags = array();
             if ($perch_only) {
-                $postitems = $Form->find_items('perch_');    
+                $postitems = $Form->find_items('perch_');
+
+                $seen_tags = $_POST;
+                
+                if (!$postitems) $postitems = array();
+                $postitems = array_merge($_POST, $postitems);
+
             }else{
                 $postitems = $_POST;
             }
-            
-            
+                        
             foreach($tags as $tag) {
                 $item_id = 'perch_'.$tag->id();
                 
@@ -442,12 +446,14 @@ class PerchAPI_Form extends PerchForm
                                 $title_var = $var['_title'];
                             }
                             
-                            if (isset($form_vars[$i]['_title'])) {
-                                $form_vars[$i]['_title'] .= ' '.$title_var;
-                                $processed_vars[$i]['_title'] = ' '.$title_var;
-                            }else{
-                                $form_vars[$i]['_title'] = $title_var;
-                                $processed_vars[$i]['_title'] = $title_var;
+                            if (isset($forms_vars[$i])) {
+                                if (isset($form_vars[$i]['_title'])) {
+                                    $form_vars[$i]['_title'] .= ' '.$title_var;
+                                    $processed_vars[$i]['_title'] = ' '.$title_var;
+                                }else{
+                                    $form_vars[$i]['_title'] = $title_var;
+                                    $processed_vars[$i]['_title'] = $title_var;
+                                }
                             }
                             
                         }

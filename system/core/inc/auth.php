@@ -29,7 +29,8 @@
     
     if (!$CurrentUser->logged_in() && !$auth_page) {
         PerchUtil::debug('Not logged in');
-        PerchUtil::redirect(PERCH_LOGINPATH);
+        $current_page = urlencode($Perch->get_page(true));
+        PerchUtil::redirect(PERCH_LOGINPATH.'?r='.$current_page);
     }else{
         $Settings   = PerchSettings::fetch();
         $Settings->set_user($CurrentUser);

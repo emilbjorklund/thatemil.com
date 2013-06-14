@@ -2,7 +2,7 @@
 
     $Form 	= new PerchForm('email', false);
 
-    $Email = new PerchEmail('settings-test');
+    $Email = new PerchEmail('settings-test.html');
 
 
     $req = array();
@@ -18,9 +18,11 @@
 		$postvars 	= array('email');
 		$data = $Form->receive($postvars);
 
+		if (PERCH_DEBUG) {
+            $Email->SMTPDebug = 2;
+        }
 		
-		
-        $Email->subject('Email settings test message');
+        //$Email->subject('Email settings test message');
         
         $Email->recipientEmail($data['email']);
         $Email->senderName(PERCH_EMAIL_FROM_NAME);

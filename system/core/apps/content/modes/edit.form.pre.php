@@ -99,7 +99,7 @@
                     $input_id = 'perch_'.$item['itemID'].'_'.$tag->id();
                     if (!in_array($tag->id(), $seen_tags)) {
                         if (PerchUtil::bool_val($tag->required())) {
-                            if ($tag->type() == 'date') {
+                            if ($tag->type() == 'date' && !$tag->native()) {
                                 if ($tag->time()) {
                                     $req[$input_id.'_minute'] = "Required";
                                 }else{
@@ -241,16 +241,8 @@
                 $Alert->set('success', PerchLang::get('Content successfully updated'));
             }
             
-            
-            // Add a new item if Save & Add Another
-            if ($Region->regionMultiple()=='1' && isset($_POST['add_another'])) {    
-        	    $NewItem = $Region->add_new_item();   
-                if ($Region->get_option('edit_mode')=='listdetail') {
-                    PerchUtil::redirect(PERCH_LOGINPATH.'/core/apps/content/edit/?id='.$Region->id().'&itm='.$NewItem->itemID().'&created=true');    
-                }     
-				
-        	}
-            
+       
+          
             
 	        // Alert any file upload errors
         	if ($_FILES) { 
@@ -264,12 +256,21 @@
             
         	// delete unused resource files.
         	$Region->clean_up_resources();
-        
-            
+                    
             
             // Index the region
             $Region->index();
 
+
+
+            // Add a new item if Save & Add Another
+            if ($Region->regionMultiple()=='1' && isset($_POST['add_another'])) {    
+                $NewItem = $Region->add_new_item();   
+                if ($Region->get_option('edit_mode')=='listdetail') {
+                    PerchUtil::redirect(PERCH_LOGINPATH.'/core/apps/content/edit/?id='.$Region->id().'&itm='.$NewItem->itemID().'&created=true');    
+                }     
+                
+            }
             
             
             if (isset($item_id) && $item_id) {
@@ -347,7 +348,7 @@
 
 
 
-    $Perch->add_javascript(PERCH_LOGINPATH.'/core/assets/js/maps.js');
+    //$Perch->add_javascript(PERCH_LOGINPATH.'/core/assets/js/maps.js');
     
     
     if (PerchUtil::count($details)) {

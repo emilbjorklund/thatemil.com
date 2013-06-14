@@ -279,13 +279,28 @@ class PerchContent_Regions extends PerchFactory
         }
     }
 
-    public function republish_all()
+    public function republish_all($interactive=false)
     {
         $regions = $this->all();
         if (PerchUtil::count($regions)) {
+            
+            if ($interactive) flush();
+
             foreach($regions as $Region) {
+
+                if ($interactive) {
+                    echo '<li class="success icon">'.PerchLang::get('Republishing: %s on page %s', $Region->regionKey(), $Region->regionPage()).'</li>';
+                }
+
                 $Region->publish();
                 $Region->index();
+
+                if ($interactive) flush();
+            }
+
+            if ($interactive) {
+                echo '<li class="success icon">'.PerchLang::get('Republishing completed successfully').'</li>';
+                flush();
             }
         }
     }

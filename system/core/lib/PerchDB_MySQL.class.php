@@ -58,6 +58,7 @@ class PerchDB_MySQL
 
 		try {
 			$this->link = new PDO($dsn, PERCH_DB_USERNAME, PERCH_DB_PASSWORD, $opts);
+			if ($this->link) $this->link->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 		} 
 		catch (PDOException $e) {
 			

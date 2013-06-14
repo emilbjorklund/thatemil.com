@@ -478,7 +478,7 @@ class PerchForm
 	
 	
 	
-	public function datepicker($id, $value=false)
+	public function datepicker($id, $value=false, $field_order='ymd', $allowempty=false)
 	{
 		$this->fields[] = $id;
 		
@@ -491,6 +491,8 @@ class PerchForm
 		}
 		
 		$s	 = '';
+
+		$fields = array();
 				
 		$value	= ($this->value($value) ? $this->value($value) : strftime('%Y-%m-%d'));
 
@@ -501,18 +503,28 @@ class PerchForm
 
 		// Day
 		$days	= array();
+		if ($allowempty) $days[] = array('label'=>'', 'value'=>'');
 		for ($i=1; $i<32; $i++) $days[]	= array('label'=>PerchUtil::pad($i), 'value'=>PerchUtil::pad($i));
-		$s		.= $this->select($id.'_day', $days, $d['day']);
+		$fields['d'] = $this->select($id.'_day', $days, $d['day']);
 		
 		// Month
 		$months	= array();
+		if ($allowempty) $months[] = array('label'=>'', 'value'=>'');
 		for ($i=1; $i<13; $i++) $months[]	= array('label'=>strftime('%b', strtotime('2007-'.PerchUtil::pad($i).'-01')), 'value'=>PerchUtil::pad($i));
-		$s		.= $this->select($id.'_month', $months, $d['month']);
+		$fields['m']	= $this->select($id.'_month', $months, $d['month']);
 		
 		// Year
 		$years	= array();
+		if ($allowempty) $years[] = array('label'=>'', 'value'=>'');
 		for ($i=strftime('%Y')-100; $i<strftime('%Y')+11; $i++) $years[]	= array('label'=>$i, 'value'=>$i);
-		$s		.= $this->select($id.'_year', $years, $d['year']);
+		$fields['y']	= $this->select($id.'_year', $years, $d['year']);
+		
+
+		for($i=0;$i<strlen($field_order); $i++) {
+			if (isset($fields[$field_order[$i]])) {
+				$s .= $fields[$field_order[$i]];	
+			}
+		}
 		
 		
 		return $s;
@@ -520,7 +532,7 @@ class PerchForm
 		
 	}
 	
-    public function datetimepicker($id, $value=false)
+    public function datetimepicker($id, $value=false, $field_order='ymd', $allowempty=false)
     {
         $this->fields[] = $id;
         
@@ -533,6 +545,8 @@ class PerchForm
         }
         
         $s   = '';
+
+        $fields = array();
                 
         $value  = ($this->value($value) ? $this->value($value) : strftime('%Y-%m-%d %H:%M'));
 
@@ -545,28 +559,40 @@ class PerchForm
         
         // Day
         $days   = array();
+        if ($allowempty) $days[] = array('label'=>'', 'value'=>'');
         for ($i=1; $i<32; $i++) $days[] = array('label'=>PerchUtil::pad($i), 'value'=>PerchUtil::pad($i));
-        $s      .= $this->select($id.'_day', $days, $d['day']);
+        $fields['d'] = $this->select($id.'_day', $days, $d['day']);
         
         // Month
         $months = array();
+        if ($allowempty) $months[] = array('label'=>'', 'value'=>'');
         for ($i=1; $i<13; $i++) $months[]   = array('label'=>strftime('%b', strtotime('2007-'.PerchUtil::pad($i).'-01')), 'value'=>PerchUtil::pad($i));
-        $s      .= $this->select($id.'_month', $months, $d['month']);
+        $fields['m'] = $this->select($id.'_month', $months, $d['month']);
         
         // Year
         $years  = array();
+        if ($allowempty) $years[] = array('label'=>'', 'value'=>'');
         for ($i=strftime('%Y')-100; $i<strftime('%Y')+11; $i++) $years[]    = array('label'=>$i, 'value'=>$i);
-        $s      .= $this->select($id.'_year', $years, $d['year']);
+        $fields['y'] = $this->select($id.'_year', $years, $d['year']);
         
+		for($i=0;$i<strlen($field_order); $i++) {
+			if (isset($fields[$field_order[$i]])) {
+				$s .= $fields[$field_order[$i]];	
+			}
+		}
+
+
         $s  .= ' : ';
         
         // Hours
         $hours  = array();
+        if ($allowempty) $hours[] = array('label'=>'', 'value'=>'');
         for ($i=0; $i<24; $i++) $hours[]    = array('label'=>PerchUtil::pad($i), 'value'=>PerchUtil::pad($i));
         $s      .= $this->select($id.'_hour', $hours, $d['hour']);
         
         // Minutes
         $minutes    = array();
+        if ($allowempty) $minutes[] = array('label'=>'', 'value'=>'');
         for ($i=0; $i<60; $i++) $minutes[]  = array('label'=>PerchUtil::pad($i), 'value'=>PerchUtil::pad($i));
         $s      .= $this->select($id.'_minute', $minutes, $d['minute']);
         

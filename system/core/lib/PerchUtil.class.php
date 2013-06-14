@@ -306,6 +306,7 @@ class PerchUtil
 	    
 	    return $str;
 	}
+
 	
 	public static function text_to_html($string, $strip_tags=true)
 	{
@@ -530,7 +531,8 @@ class PerchUtil
     
     public static function file_extension($file)
     {
-        return substr($file, strrpos($file, '.')+1);
+    	if (strpos($file, '.')!==false) return substr($file, strrpos($file, '.')+1);
+    	return false;
     }
     
     public static function strip_file_extension($file)
@@ -554,7 +556,7 @@ class PerchUtil
         return PerchUtil::file_path(implode('/', $parts));
     }
     
-    
+
     public static function get_current_app()
     {
         $Perch = PerchAdmin::fetch();
@@ -573,13 +575,18 @@ class PerchUtil
     
     public static function urlify($string)
     {   
-        $s  = iconv('UTF-8', 'ASCII//TRANSLIT', $string);
-        
-        $s  = strtolower($s);
-        $s  = preg_replace('/[^a-z0-9\-\s]/', '', $s);
-        $s  = trim($s);
-        $s  = preg_replace('/\s+/', '-', $s);
-        
+    	$string = trim($string);
+
+    	if (function_exists('transliterator_transliterate')) {
+    		$s = transliterator_transliterate("Any-Latin; NFD; [:Nonspacing Mark:] Remove; NFC; [:Punctuation:] Remove; Lower();", $string);
+    	}else{
+    		$s  = iconv('UTF-8', 'ASCII//TRANSLIT', $string);	
+    		$s  = strtolower($s);
+    		$s  = preg_replace('/[^a-z0-9\-\s]/', '', $s);
+    	}    
+                
+        $s  = preg_replace('/[\s\-]+/', '-', $s);
+           
         if (strlen($s)>0){
             return $s;
         }else{
@@ -868,6 +875,11 @@ class PerchUtil
 
 			return $success;
 		}
+	}
+
+	public static function is_assoc($array) 
+	{
+  		return (bool)count(array_filter(array_keys($array), 'is_string'));
 	}
 }
 

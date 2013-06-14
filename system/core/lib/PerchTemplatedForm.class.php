@@ -473,6 +473,11 @@ class PerchTemplatedForm
         	$attrs = array_merge($attrs, $aria);
         }
 
+        $html5data = $Tag->search_attributes_for('data-');
+        if (PerchUtil::count($html5data)) {
+        	$attrs = array_merge($attrs, $html5data);
+        }
+
 	    
 	    if ($Tag->disabled()) $attrs['disabled'] = 'disabled';
 	    if ($Tag->checked()) $attrs['checked'] = 'checked';
@@ -497,6 +502,7 @@ class PerchTemplatedForm
             if ($Tag->autofocus())      $attrs['autofocus']     = 'autofocus';
             if ($Tag->multiple())       $attrs['multiple']      = 'multiple';
             if ($Tag->novalidate())     $attrs['novalidate']    = 'novalidate';
+            if ($Tag->readonly())     	$attrs['readonly']    	= 'readonly';
 
 	    }else{
 	        switch($Tag->type()) {
@@ -534,12 +540,14 @@ class PerchTemplatedForm
         if (isset($_POST[$incoming_attr])) 				$new_value = (stripslashes($_POST[$incoming_attr]));
         if (isset($_GET[$incoming_attr]))  				$new_value = (stripslashes($_GET[$incoming_attr]));
         
-        switch($Tag->type()) {
-            case 'checkbox':
-                if (isset($attrs['checked'])) unset($attrs['checked']);
-                if ($Tag->value()===$new_value) $attrs['checked'] = 'checked';            
-                break;
-        }
+        if (count($_POST) || count($_GET)) {
+	        switch($Tag->type()) {
+	            case 'checkbox':
+	                if (isset($attrs['checked'])) unset($attrs['checked']);
+	                if ($Tag->value()===$new_value) $attrs['checked'] = 'checked';            
+	                break;
+	        }
+	    }
         
         if ($new_value!==false) $attrs['value'] = $new_value;
     

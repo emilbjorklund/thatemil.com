@@ -25,7 +25,7 @@ Perch.UI.Global	= function()
 		initEditForm();
 		initCheckboxSets();
 		initFieldHelpers();
-		initDeleteButtons();
+		if (!oldIE) initDeleteButtons();
 		initDashboard();
 		initKeepAlive();
 	};
@@ -45,15 +45,19 @@ Perch.UI.Global	= function()
 	
 	var initEditForm = function() {
 		
-		$(window).on('load', stickButtons);
+		$(window).on('load', function(){
+			stickButtons();
+			autowidthForms();
+		});
 		$(window).on('resize', function(){
 			doresize = true;
 			setTimeout(function(){
 				if (doresize) {
-					stickButtons;
+					stickButtons();
 					doresize = false;
 				}
 			}, 1000);
+			autowidthForms();
 		});
 		 
 		
@@ -109,6 +113,21 @@ Perch.UI.Global	= function()
 		}
 	};
 	
+	var autowidthForms = function() {
+		var textareas = $('textarea.autowidth, .editor-wrap');
+		if (textareas.length) {
+			textareas.each(function(i, o){
+				var self = $(o);
+				var field = self.parents('div.field');
+				var label = field.find('label:first');
+				if (field && label) {
+					var w = field.innerWidth()-label.outerWidth();
+					if (w>200) self.width(w-40);	
+				}
+			});
+		}
+	}
+
 	var initTopbar = function() {
 		
 		var body = $('body');
@@ -171,6 +190,8 @@ Perch.UI.Global	= function()
 			}else{
 				$.cookie(sidebarCoookie, 0, { path: '/' });
 			}
+			autowidthForms();
+			$(window).trigger('perch.sidebar-toggle');
 		});
 	}
 	
@@ -342,7 +363,8 @@ Perch.UI.Global	= function()
 	}
 	
 	return {
-		init: init
+		init: init,
+		resizeFields: autowidthForms
 	};
 	
 }();

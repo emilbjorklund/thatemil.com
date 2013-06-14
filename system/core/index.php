@@ -21,7 +21,15 @@
 
     // If the user's logged in, send them to edit content
     if ($CurrentUser->logged_in()) {
-        //PerchUtil::redirect(PERCH_LOGINPATH . '/core/apps/content/');
+
+        if (isset($_POST['r']) && $_POST['r']!='') {
+            $redirect_url = base64_decode($_POST['r']);
+            $r = parse_url($redirect_url);
+            if (isset($r['path'])) {
+                PerchUtil::redirect($redirect_url);
+            }
+        }
+
         if ($Settings->get('dashboard')->settingValue()) {
             PerchUtil::redirect(PERCH_LOGINPATH . '/core/dashboard/');
         }
@@ -106,6 +114,15 @@
                 <p>
                     <input type="submit" class="button" value="<?php echo PerchLang::get('Log in'); ?>">
                     <input type="hidden" name="login" value="1" />
+                    <?php
+                        if (isset($_GET['r']) && $_GET['r']!='') {
+                            echo '<input type="hidden" name="r" value="'.PerchUtil::html(base64_encode($_GET['r']), true).'" />';
+                        }
+
+                        if (isset($_POST['r']) && $_POST['r']!='') {
+                            echo '<input type="hidden" name="r" value="'.PerchUtil::html($_POST['r'], true).'" />';
+                        }
+                    ?>
                 </p>
             </form>
         </div>

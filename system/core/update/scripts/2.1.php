@@ -80,6 +80,11 @@
 			('content.navgroups.delete','Delete navigation groups',9);
 
 
+		INSERT INTO `__PREFIX__user_privileges` (`privKey`, `privTitle`, `privOrder`)
+		VALUES 
+			('content.pages.republish','Republish pages', 12);
+
+
 
 		ALTER TABLE `__PREFIX__pages` ADD `pageAccessTags` VARCHAR(255)  NOT NULL  DEFAULT ''  AFTER `pageNavOnly`;
 

@@ -127,6 +127,8 @@
 
     function perch_search_form($opts=false, $return=false)
     {
+        $Perch = Perch::fetch();
+
         $defaults = array();
         $defaults['template'] = 'search-form.html';
         
@@ -199,7 +201,8 @@
             'template'           =>'item.html',
             'skip-template'      =>false,
             'add-trailing-slash' =>false,
-            'navgroup'           =>false
+            'navgroup'           =>false,
+            'include-hidden'     =>false,
         );
         
         if (is_array($opts)) {
@@ -230,7 +233,8 @@
             'template'           =>'item.html',
             'skip-template'      =>false,
             'add-trailing-slash' =>false,
-            'navgroup'           =>false
+            'navgroup'           =>false,
+            'include-hidden'     =>false,
         );
         
         if (is_array($opts)) {
@@ -262,7 +266,8 @@
             'template'           =>'item.html',
             'skip-template'      =>false,
             'add-trailing-slash' =>false,
-            'navgroup'           =>false
+            'navgroup'           =>false,
+            'include-hidden'     =>false,
         );
         
         if (is_array($opts)) {
@@ -306,6 +311,8 @@
             'add-trailing-slash'   => false,
             'navgroup'             => false,
             'access-tags'          => false,
+            'include-hidden'       => false,
+            'from-level'           => false,
         );
 
 
@@ -350,7 +357,8 @@
             'template'           => 'breadcrumbs.html',
             'skip-template'      => false,
             'add-trailing-slash' => false,
-            'navgroup'           => false
+            'navgroup'           => false,
+            'include-hidden'     => false,
         );
         
         if (is_array($opts)) {
@@ -372,6 +380,40 @@
         echo $r;
     }
 
+    function perch_content_create($key=false, $opts=false)
+    {
+        if ($key===false) return false;
+
+        $default_opts = array(
+            'page'            => false,
+            'template'        => false,
+            'multiple'        => false,
+            'sort'            => false,
+            'sort-order'      => false,
+            'edit-mode'       => false,
+            'searchable'      => true,
+            'search-url'      => false,
+            'add-to-top'      => false,
+            'limit'           => false,
+            'shared'          => false,
+            'roles'           => false,
+            'title-delimiter' => false,
+            'columns'         => false,
+        );
+
+        if (is_array($opts)) {
+            $opts = array_merge($default_opts, $opts);
+        }else{
+            $opts = $default_opts;
+        }
+
+        if (!$opts['template']) return false;
+
+        $Content = PerchContent::fetch();
+
+        return $Content->create_region($key, $opts);
+
+    }
 
     /**
      * Get an item from the querystring, or return the default if not found. Defaults to false.
@@ -388,6 +430,69 @@
         }
         
         return $default;
+    }
+
+    function perch_layout($file, $vars=array(), $return=false)
+    {
+        $Perch = Perch::fetch();
+        $Perch->set_layout_vars($vars);
+
+        if ($return) {
+            flush();
+            ob_start();
+        }
+
+        $path = PerchUtil::file_path(PERCH_TEMPLATE_PATH.'/layouts/'.$file.'.php');
+
+        if (file_exists($path)) {
+            $Perch->layout_depth++;
+            include($path);    
+            $Perch->layout_depth--;
+        }else{
+            echo '<!-- Missing layout file: "'.PerchUtil::html('templates/layouts/'.$file.'.php').'" -->';
+            PerchUtil::debug('Missing layout file: '.$path, 'error');
+        }
+
+        
+
+        if ($return) {
+            return ob_get_clean();
+        }
+    }
+
+    function perch_layout_var($var, $return=false)
+    {
+        $Perch = Perch::fetch();
+        $var = $Perch->get_layout_var($var);
+
+        if ($return) return $var;
+
+        echo PerchUtil::html($var);
+    }
+
+    function perch_template($tpl, $vars=array(), $return=false)
+    {
+        $Template = new PerchTemplate($tpl);
+
+        if (!is_array($vars)) {
+            PerchUtil::debug('Non-array content value passed to perch_template.', 'error');
+            $vars = array();
+        }
+
+        if (count($vars)==0) {
+            $Template->use_noresults();
+        }
+
+        if (PerchUtil::is_assoc($vars)) {
+            $html = $Template->render_group($vars, true);
+        }else{
+            $html = $Template->render($vars);
+        }
+        
+        $html     = $Template->apply_runtime_post_processing($html);
+        
+        if ($return) return $html;
+        echo $html;
     }
 
 ?>

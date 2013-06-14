@@ -17,7 +17,6 @@ class PerchAuthenticatedUser extends PerchBase
         if (strlen($password) > 72) return false;
         
         if ($this->activate()) {
-            //$sql     = 'SELECT * FROM ' . $this->table . ' WHERE userEnabled=\'1\' AND userUsername=' . $this->db->pdb($username) . ' LIMIT 1';
 
             $sql     = 'SELECT u.*, r.* FROM ' . $this->table . ' u, '.PERCH_DB_PREFIX.'user_roles r
                         WHERE u.roleID=r.roleID AND u.userEnabled=\'1\' AND userUsername=' . $this->db->pdb($username) . ' LIMIT 1';
@@ -153,9 +152,10 @@ class PerchAuthenticatedUser extends PerchBase
         $url = 'http://' . $host . $path;
         
         $data = '';
-        $data['key'] = PERCH_LICENSE_KEY;
-        $data['host'] = $_SERVER['SERVER_NAME'];
+        $data['key']     = PERCH_LICENSE_KEY;
+        $data['host']    = $_SERVER['SERVER_NAME'];
         $data['version'] = $Perch->version;
+        $data['php']     = phpversion();
         $content = http_build_query($data);
         
         $result = false;

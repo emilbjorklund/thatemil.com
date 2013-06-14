@@ -206,6 +206,16 @@ class PerchFieldType
 
         return $out;
     }
+
+    /**
+     * Get a version of the content for listing in the admin editing interface.
+     * @param  boolean $raw [description]
+     * @return [type]       [description]
+     */
+    public function render_admin_listing($raw=false)
+    {
+        return PerchUtil::html($this->get_processed($raw));
+    }
     
     /**
      * Set sibling tags

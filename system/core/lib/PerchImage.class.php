@@ -185,8 +185,10 @@ class PerchImage
         }
         
         if ($this->mode == 'imagick') {
-            $r =  $this->resize_with_imagick($image_path, $save_as, $new_w, $new_h, $crop_w, $crop_h, $crop_x, $crop_y);
+            $r = $this->resize_with_imagick($image_path, $save_as, $new_w, $new_h, $crop_w, $crop_h, $crop_x, $crop_y);
         }
+
+        if ($r) $out['mime'] = $r;
         
         PerchUtil::set_file_permissions($save_as);
         
@@ -351,6 +353,10 @@ class PerchImage
         imagedestroy($orig_image);
         imagedestroy($new_image);    
         if ($crop) imagedestroy($crop_image);
+
+        if (isset($orig_image)) unset($orig_image);
+        if (isset($new_image))  unset($new_image);
+        if (isset($crop_image)) unset($crop_image);
         
         return $mime;
         
@@ -424,9 +430,11 @@ class PerchImage
             PerchUtil::debug($Image->unsharpMaskImage(0 , $this->sharpening/10 , $this->sharpening/2 , 0.05));
         }
         
+        $mime = 'image/'.$Image->getImageFormat();
+
         $Image->writeImage($save_as);
         $Image->destroy();        
-        return true;    
+        return $mime;    
     }
     
 }

@@ -25,13 +25,20 @@ class PerchEmail
     private $files = array();
 
     private $body = false;
+
+    private $html = false;
     
     public $errors = '';
     
     function __construct($template)
     {    
         $this->template = $template; 
-        $this->template_path = PERCH_CORE . '/emails/' . $template . '.txt'; 
+        
+        if ($template) {
+            $this->set_template($template);
+        }
+
+        $this->set('http_host', $_SERVER['HTTP_HOST']);
         
         if (!defined('PERCH_EMAIL_METHOD')) define('PERCH_EMAIL_METHOD', 'mail');
         
@@ -42,6 +49,42 @@ class PerchEmail
         if (!defined('PERCH_EMAIL_SECURE'))     define('PERCH_EMAIL_SECURE', '');
         if (!defined('PERCH_EMAIL_USERNAME'))   define('PERCH_EMAIL_USERNAME', "not configured");
         if (!defined('PERCH_EMAIL_PASSWORD'))   define('PERCH_EMAIL_PASSWORD', "not configured");
+    }
+
+    public function set_template($template)
+    {
+        $this->template = $template; 
+
+        $type = PerchUtil::file_extension($template);
+
+        if (!$type) {
+            $type = 'txt';
+            $template .= '.txt';
+        }else{
+            if ($type == 'html') {
+                $this->html = true;
+            }
+        }
+
+        if (isset($this->app_id)) {
+            $local_file = PerchUtil::file_path(PERCH_PATH.'/addons/apps/'.$this->app_id.'/templates/'.$template);    
+        }else{
+            $local_file = false;
+        }
+        
+        $user_file  = PerchUtil::file_path(PERCH_TEMPLATE_PATH.'/'.$template);
+        $core_file  = PerchUtil::file_path(PERCH_CORE . '/emails/'.$template);
+
+        if (file_exists($user_file)) {
+            $this->template_path = $user_file;
+        }elseif (file_exists($local_file)) {
+            $this->template_path = $local_file;
+        }else{
+            $this->template_path = $core_file;
+        }
+
+        PerchUtil::debug('Using email template: '.$this->template_path.' ('.$type.')', 'template');
+
     }
 
     public function body($str=false)
@@ -152,6 +195,10 @@ class PerchEmail
         
         $mail = new PHPMailer(true); 
         $mail->CharSet = 'UTF-8';
+
+        if ($this->html) {
+            $mail->IsHTML();
+        }
         
         try {
             if ($this->replyToEmail()) {
@@ -256,6 +303,15 @@ class PerchEmail
 			$this->template_data 	= $data;
 			$contents			    = preg_replace_callback('/\$(\w+)/', array($this, "substitute_vars"), $contents);
 			$this->template_data 	= '';
+
+            if ($this->html) {
+                $s = '/<title>(.*?)<\/title>/';
+                if (preg_match($s, $contents, $matches)) {
+                    if (isset($matches[1])) {
+                        $this->subject($matches[1]);
+                    }
+                }
+            }
 			
 			return stripslashes($contents);
 		}else{
