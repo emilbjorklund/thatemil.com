@@ -1,3 +1,0 @@
-This is a test email to check that your server's email settings are correctly configured.
-
-As you have received this message, they seem to be fine!
