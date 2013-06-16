@@ -94,12 +94,8 @@ $opts['template'] = 'post_in_list.html';
 
 <?php include('../page_head.php'); ?>
     <main id="content-main" role="main"></main>
-		   
+		   <h1 class="hd-listing wf"><?php echo $page_title ?></h1>
 		    <?php 
-		        
-		        
-		        echo '<h1 class="hd-listing wf">'.$page_title.'</h1>';
-
 		        perch_blog_custom($opts);
 		    ?>
 <?php include('../page_foot.php'); ?>
