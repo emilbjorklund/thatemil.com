@@ -20,14 +20,30 @@
         $message = $HTML->failure_message('Sorry, that author could not be updated.');
     }
     
+
+    $Template   = $API->get('Template');
+    $Template->set('blog/author.html', 'blog');
+    $tags = $Template->find_all_tags();
+
+
     
     $Form->require_field('authorGivenName', 'Required');
     $Form->require_field('authorEmail', 'Required');
+    $Form->set_required_fields_from_template($Template);
 
     if ($Form->submitted()) {
 		$postvars = array('authorGivenName', 'authorFamilyName', 'authorEmail', 'authorSlug');
 		
     	$data = $Form->receive($postvars);
+
+        $prev = false;
+
+        if (isset($details['authorDynamicFields'])) {
+            $prev = PerchUtil::json_safe_decode($details['authorDynamicFields'], true);
+        }
+
+        $dynamic_fields = $Form->receive_from_template_fields($Template, $prev);
+        $data['authorDynamicFields'] = PerchUtil::json_safe_encode($dynamic_fields);
     	
         $Author->update($data);
     	

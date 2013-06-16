@@ -61,6 +61,29 @@ class PerchBlog_Tags extends PerchAPI_Factory
 		return $this->create($data);
 
 	}
+
+		/**
+	 * Find a tag by its tagSlug
+	 *
+	 * @param string $slug 
+	 * @return void
+	 * @author Drew McLellan
+	 */
+	public function find_by_slug($slug)
+    {
+        $sql    = 'SELECT * 
+                    FROM ' . $this->table . '
+                    WHERE tagSlug='. $this->db->pdb($slug) .'
+                    LIMIT 1';
+                    
+        $result = $this->db->get_row($sql);
+        
+        if (is_array($result)) {
+            return new $this->singular_classname($result);
+        }
+        
+        return false;
+    }
     
 }
 

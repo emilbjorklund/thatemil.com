@@ -5,6 +5,13 @@
     echo $HTML->para('You can edit your post here. Set the status to Published to make the post visible on the website.');
     echo $HTML->para('If a post has a date in the future, it will not appear on the site until that date and time.');
     
+    if (PerchUtil::count($post_templates)) {
+        echo $HTML->heading3('Post types');
+        echo $HTML->para('Different posts types can contain different content fields.');
+        echo $HTML->para('Switching a post to a different type can result in content being lost if the same fields aren\'t present in both types.');
+    }
+
+
     echo $HTML->side_panel_end();
     
     
@@ -29,18 +36,22 @@
             echo '<div id="template-help">' . $template_help_html . '</div>';
         }
     
-        echo $HTML->heading2('Post');
+        if ($template =='post.html') {
+            echo $HTML->heading2('Post');    
+        }else{
+            echo $HTML->heading2(PerchUtil::filename($template, false));
+        }
+        
     
             echo $Form->form_start('blog-edit', 'magnetic-save-bar');
     
-            echo $Form->text_field('postTitle', 'Title', isset($details['postTitle'])?$details['postTitle']:false, 'xl');
+            if ($TitleTag) echo $Form->text_field('postTitle', 'Title', isset($details['postTitle'])?$details['postTitle']:false, 'xl');
 
-    		echo $Form->textarea_field('postDescRaw', 'Post', isset($details['postDescRaw'])?$details['postDescRaw']:false, '', $Template->find_tag('postDescHTML'));
+    		if ($DescTag) echo $Form->textarea_field('postDescRaw', 'Post', isset($details['postDescRaw'])?$details['postDescRaw']:false, 'autowidth', $Template->find_tag('postDescHTML'));
 		
-    		echo $Form->fields_from_template($Template, $details, $Blog->static_fields);
+            echo $Form->fields_from_template($Template, $details, $Blog->static_fields);
                        
 
-        
         echo $HTML->heading2('Meta information');
 
 
@@ -50,11 +61,13 @@
             $opts   = array();
             if(is_array($categories)) {
                 foreach($categories as $Category) {
-                    PerchUtil::debug($Category);
                     $opts[] = array('label'=>$Category->categoryTitle(),'value'=>$Category->id());
                 }
 
-                echo $Form->checkbox_set('cat_ids', 'Categories', $opts, isset($details['cat_ids'])?$details['cat_ids']:array());
+                $multicol = false;
+                if (PerchUtil::count($categories) > 4) $multicol = 'multi-col';
+
+                echo $Form->checkbox_set('cat_ids', 'Categories', $opts, isset($details['cat_ids'])?$details['cat_ids']:array(), '', false, $multicol);
             }
             
 
@@ -66,14 +79,28 @@
             }
             
             
+
+            if (PerchUtil::count($post_templates)) {
+                $opts = array();
+                $opts[] = array('label'=>'Default', 'value'=>'post.html');
+
+                foreach($post_templates as $template) {
+                    $opts[] = array('label'=>PerchUtil::filename($template, false), 'value'=>'posts/'.$template);
+                }
+                echo $Form->hint('See sidebar note about post types');
+                echo $Form->select_field('postTemplate', 'Post type', $opts, isset($details['postTemplate'])?$details['postTemplate']:'post.html');
+
+            }else{
+                echo $Form->hidden('postTemplate', isset($details['postTemplate'])?$details['postTemplate']:'post.html');
+            }
+
+
             
             $opts = array();
             $opts[] = array('label'=>'Draft', 'value'=>'Draft');
             if ($CurrentUser->has_priv('perch_blog.post.publish')) $opts[] = array('label'=>'Published', 'value'=>'Published');
-         
-
-
             echo $Form->select_field('postStatus', 'Status', $opts, isset($details['postStatus'])?$details['postStatus']:'Published');
+
 
 
 

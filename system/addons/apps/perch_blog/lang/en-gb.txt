@@ -152,5 +152,17 @@
 	"px wide":"px wide",
 	"Image pixel width":"Image pixel width",
 	"Resource bucket":"Resource bucket",
-	"Images will be scaled automatically":"Images will be scaled automatically"
+	"Images will be scaled automatically":"Images will be scaled automatically",
+	"Posts":"Posts",
+	"Template":"Template",
+	"Post type":"Post type",
+	"Posts \u2192 Image":"Posts \u2192 Image",
+	"Image":"Image",
+	"Changing to a type with different fields may delete the content is the missing fields.":"Changing to a type with different fields may delete the content is the missing fields.",
+	"See sidebar note about post types":"See sidebar note about post types",
+	"Post types":"Post types",
+	"Different posts types can contain different content fields.":"Different posts types can contain different content fields.",
+	"Switching a post to a different type can result in content being lost if the same fields aren't present in both types.":"Switching a post to a different type can result in content being lost if the same fields aren't present in both types.",
+	"Sorry, that category could not be updated.":"Sorry, that category could not be updated.",
+	"Creating a New Category":"Creating a New Category"
 }

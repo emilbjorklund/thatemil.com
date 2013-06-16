@@ -15,6 +15,7 @@
 	# Title panel
     echo $HTML->heading1('Importing Data');
     
+    flush();
 
     if ($file) {
 
@@ -26,6 +27,7 @@
                 echo '<li class="icon '.$result['type'].'">';
                 echo implode(' &mdash; ', $result['messages']);
                 echo '</li>';
+                flush();
             }
             echo '</ul>';
         }

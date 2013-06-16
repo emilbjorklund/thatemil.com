@@ -7,7 +7,7 @@
 
     $Settings = $API->get('Settings');
 
-    if ($Settings->get('perch_blog_update')->val()!='3.6.3') {
+    if ($Settings->get('perch_blog_update')->val()!='3.7.5') {
 
         $UserPrivileges = $API->get('UserPrivileges');
         $UserPrivileges->create_privilege('perch_blog', 'Access the blog');
@@ -36,10 +36,21 @@
         $db->execute($sql);
         $sql = "INSERT INTO `".PERCH_DB_PREFIX."settings` (`settingID`, `userID`, `settingValue`) VALUES ('perch_blog_post_url', 0, '/blog/post.php?s={postSlug}')";
         $db->execute($sql);
-        
-        //$message = $HTML->warning_message('Install complete. Please delete the file: <code>%s</code>', $API->app_path().'/update.php');  
 
-        $Settings->set('perch_blog_update', '3.6.3');
+        // 3.7
+        $sql = "ALTER TABLE `".PERCH_DB_PREFIX."blog_categories` ADD `categoryPostCount` INT(10)  UNSIGNED  NOT NULL  DEFAULT '0'  AFTER `categorySlug`";
+        $db->execute($sql);
+        $sql = "ALTER TABLE `".PERCH_DB_PREFIX."blog_categories` ADD `categoryDynamicFields` TEXT  NULL  AFTER `categoryPostCount`";
+        $db->execute($sql);
+        $sql = "ALTER TABLE `".PERCH_DB_PREFIX."blog_posts` ADD `postTemplate` VARCHAR(255)  NOT NULL  DEFAULT 'post.html'  AFTER `postAllowComments`";
+        $db->execute($sql);
+        $sql = "ALTER TABLE `".PERCH_DB_PREFIX."blog_authors` ADD `authorDynamicFields` TEXT  NULL  AFTER `authorImportRef`";
+        $db->execute($sql);
+
+        $Cats = new PerchBlog_Categories($API);
+        $Cats->update_post_counts();
+
+        $Settings->set('perch_blog_update', '3.7.5');
 
     }
 

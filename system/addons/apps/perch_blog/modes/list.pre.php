@@ -8,7 +8,7 @@
     $Blog = new PerchBlog_Posts($API);
     
     $Paging = $API->get('Paging');
-    $Paging->set_per_page(10);
+    $Paging->set_per_page(15);
     
     $Categories = new PerchBlog_Categories($API);
     $categories = $Categories->all();

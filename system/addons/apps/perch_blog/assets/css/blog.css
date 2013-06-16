@@ -31,3 +31,8 @@ ul.importables li.failure {
 	background-position: 10px -702px;
 	padding-left: 30px;
 }
+
+form .checkboxes.multi-col div.checkbox {
+	margin-top: 0;
+	margin-bottom: 0;
+}

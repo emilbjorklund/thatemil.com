@@ -16,7 +16,7 @@
         $Post = $Blog->find($postID, true);
         $details = $Post->to_array();
         
-        
+        $template = $Post->postTemplate();
             
     }else{
         $Post = false;
@@ -26,27 +26,46 @@
         if (!$CurrentUser->has_priv('perch_blog.post.create')) {
             PerchUtil::redirect($API->app_path());
         }
+
+        $template = false;
        
     }
 
+
+    if (!$template) {
+        $template = 'post.html';
+    }
+
     $Template   = $API->get('Template');
-    $Template->set('blog/post.html', 'blog');
+    $Template->set('blog/'.$template, 'blog');
     $tags = $Template->find_all_tags();
 
 
     $result = false;
 
     $Form = $API->get('Form');
-
-    $Form->require_field('postTitle', 'Required');
-    $Form->require_field('postDescRaw', 'Required');
     $Form->require_field('postDateTime_minute', 'Required');
+
+
+    $TitleTag = $Template->find_tag('postTitle');
+    if ($TitleTag) {
+        if ($TitleTag->required()) {
+            $Form->require_field('postTitle', 'Required');
+        }
+    }
     
-    $Form->set_required_fields_from_template($Template);
+    $DescTag = $Template->find_tag('postDescHTML');
+    if ($DescTag) {
+        if ($DescTag->required()) {
+            $Form->require_field('postDescRaw', 'Required');
+        }
+    }
+    
+    $Form->set_required_fields_from_template($Template, array('postDescHTML', 'postTitle'));
 
     if ($Form->submitted()) {
     	        
-        $postvars = array('postID','postTitle','postDescRaw','cat_ids','postTags','postStatus', 'postAllowComments');
+        $postvars = array('postID','postTitle','postDescRaw','cat_ids','postTags','postStatus', 'postAllowComments', 'postTemplate');
 		
     	$data = $Form->receive($postvars);
     	
@@ -74,6 +93,10 @@
 
     	if (is_object($Post)) {
 
+            if (!isset($data['postTitle']) || $data['postTitle']=='') {
+                $data['postTitle'] = 'Post '.$Post->id();
+            }            
+
             if ($Post->authorID()==0) {
                 // set the author.
                 $Authors = new PerchBlog_Authors;
@@ -84,6 +107,7 @@
     	    $Post->Template = $Template;
     	    $result = $Post->update($data);
     	}else{
+
     	    if (isset($data['postID'])) unset($data['postID']);
 
             if (!$CurrentUser->has_priv('perch_blog.comments.enable')) {
@@ -97,8 +121,17 @@
 
     	    $new_post = $Blog->create($data);
     	    if ($new_post) {
+
+                if (!isset($data['postTitle']) || $data['postTitle']=='') {
+                    $data['postTitle'] = 'Post '.$new_post->id();
+                }   
+
                 $new_post->update($data);
     	        $result = true;
+
+                PerchBlog_Cache::expire_all();
+                $Categories->update_post_counts();
+
     	        PerchUtil::redirect($API->app_path() .'/edit/?id='.$new_post->id().'&created=1');
     	    }else{
     	        $message = $HTML->failure_message('Sorry, that post could not be updated.');
@@ -121,10 +154,24 @@
         // clear the caches
         PerchBlog_Cache::expire_all();
 
+
+        // update category post counts;
+        $Categories->update_post_counts();
+
+
+        // Has the template changed? If so, need to redirect back to kick things off again.
+        if ($data['postTemplate'] != $template) {
+            PerchUtil::redirect($API->app_path() .'/edit/?id='.$Post->id().'&edited=1');
+        }
+
     }
     
     if (isset($_GET['created']) && !$message) {
         $message = $HTML->success_message('Your post has been successfully created. Return to %spost listing%s', '<a href="'.$API->app_path() .'">', '</a>'); 
+    }
+
+    if (isset($_GET['edited']) && !$message) {
+        $message = $HTML->success_message('Your post has been successfully updated. Return to %spost listing%s', '<a href="'.$API->app_path() .'">', '</a>');  
     }
 
 
@@ -146,5 +193,8 @@
         $draft = false;
     }
     
+
+
+    $post_templates = PerchUtil::get_dir_contents(PerchUtil::file_path(PERCH_TEMPLATE_PATH.'/blog/posts'), false);
 
 ?>

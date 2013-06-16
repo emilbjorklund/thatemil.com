@@ -241,6 +241,7 @@ class PerchBlog_Comments extends PerchAPI_Factory
     	            $val = $opts['value'];
     	            $match = isset($opts['match']) ? $opts['match'] : 'eq';
     	            foreach($comments as $item) {
+    	            	if (!isset($item[$key])) $item[$key] = false;
     	                if (isset($item[$key])) {
     	                    switch ($match) {
                                 case 'eq': 

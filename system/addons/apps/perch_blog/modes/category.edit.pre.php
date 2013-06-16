@@ -17,19 +17,42 @@
         $Category = $Categories->find($categoryID);
         $details = $Category->to_array();
     }else{
-        $message = $HTML->failure_message('Sorry, that category could not be updated.');
+        $categoryID = false;
+        $Category = false;
+        $details = array();
     }
-    
-    
-    
+
+
+    $Template   = $API->get('Template');
+    $Template->set('blog/category.html', 'blog');
+    $tags = $Template->find_all_tags();
+
+          
 
     $Form->require_field('categoryTitle', 'Required');
+    $Form->set_required_fields_from_template($Template);
 
     if ($Form->submitted()) {
-		$postvars = array('categoryID','categoryTitle');
+		$postvars = array('categoryTitle');
 		
     	$data = $Form->receive($postvars);
+
+        $prev = false;
+
+        if (isset($details['categoryDynamicFields'])) {
+            $prev = PerchUtil::json_safe_decode($details['categoryDynamicFields'], true);
+        }
+        
+        $dynamic_fields = $Form->receive_from_template_fields($Template, $prev);
+        $data['categoryDynamicFields'] = PerchUtil::json_safe_encode($dynamic_fields);
     	
+        if (!is_object($Category)) {
+            $data['categorySlug'] = PerchUtil::urlify($data['categoryTitle']);
+            $Category = $Categories->create($data);
+            PerchUtil::redirect($API->app_path() .'/categories/edit/?id='.$Category->id().'&created=1');
+        }
+
+
         $Category->update($data);
     	
         if (is_object($Category)) {

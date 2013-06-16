@@ -10,7 +10,8 @@
       `authorFamilyName` varchar(255) NOT NULL DEFAULT '',
       `authorEmail` varchar(255) NOT NULL DEFAULT '',
       `authorSlug` varchar(255) NOT NULL DEFAULT '',
-      `authorImportRef` VARCHAR(64) NULL DEFAULT NULL,
+      `authorImportRef` varchar(64) DEFAULT NULL,
+      `authorDynamicFields` text,
       PRIMARY KEY (`authorID`)
     ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
@@ -18,6 +19,8 @@
       `categoryID` int(11) NOT NULL AUTO_INCREMENT,
       `categoryTitle` varchar(255) NOT NULL DEFAULT '',
       `categorySlug` varchar(255) NOT NULL DEFAULT '',
+      `categoryPostCount` int(10) unsigned NOT NULL DEFAULT '0',
+      `categoryDynamicFields` text,
       PRIMARY KEY (`categoryID`),
       KEY `idx_slug` (`categorySlug`)
     ) ENGINE=MyISAM DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
@@ -52,6 +55,7 @@
       `postImportID` varchar(64) DEFAULT NULL,
       `postLegacyURL` varchar(255) DEFAULT NULL,
       `postAllowComments` tinyint(1) unsigned NOT NULL DEFAULT '1',
+      `postTemplate` varchar(255) NOT NULL DEFAULT 'post.html',
       PRIMARY KEY (`postID`),
       KEY `idx_date` (`postDateTime`),
       FULLTEXT KEY `idx_search` (`postTitle`,`postDescRaw`,`postTags`)

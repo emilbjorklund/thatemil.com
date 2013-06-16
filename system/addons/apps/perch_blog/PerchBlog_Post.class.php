@@ -162,18 +162,13 @@ class PerchBlog_Post extends PerchAPI_Base
     {
         $out = parent::to_array();
 
-
-
-
-
         if (PerchUtil::count($template_ids) && $this->array_prefix_match('author', $template_ids)) {
             if (!$this->Author) $this->_load_author();
             if (is_object($this->Author)) {
                 $out = array_merge($out, $this->Author->to_array());
             }
         }
-
-            
+      
         
         if (PerchUtil::count($template_ids) && (in_array('category_slugs', $template_ids) || in_array('category_names', $template_ids))) {
 

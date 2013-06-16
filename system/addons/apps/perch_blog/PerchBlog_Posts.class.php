@@ -344,7 +344,7 @@ class PerchBlog_Posts extends PerchAPI_Factory
                         break;
                     case 'contains':
                         $v = str_replace('/', '\/', $raw_value);
-                        $where[] = $key." REGEXP '/\b".$v."\b/i'";
+                        $where[] = $key." REGEXP '[[:<:]]'.$v.'[[:>:]]'";
                         break;
                     case 'regex':
                     case 'regexp':
@@ -370,13 +370,37 @@ class PerchBlog_Posts extends PerchAPI_Factory
                     case 'in':
                     case 'within':
                         $vals  = explode(',', $raw_value);
+                        $tmp = array();
                         if (PerchUtil::count($vals)) {
-                            $where[] = $key.' IN ('.$this->implode_for_sql_in($vals).') ';                            
+                            foreach($vals as $value) {
+                                if ($item[$key]==trim($value)) {
+                                    $tmp[] = $item;
+                                    break;
+                                }
+                            }
+                            $where[] = $key.' IN '.$this->implode_for_sql_in($tmp);
                         }
                         break;
                 }
 	        }
 	    }
+
+        // author
+        if (isset($opts['author'])) {
+            $Authors = new PerchBlog_Authors;
+
+            if (is_numeric($opts['author'])) {
+                $Author = $Authors->find($opts['author']);
+            }else{
+                $Author = $Authors->find_by_slug($opts['author']);
+            }
+
+            if (is_object($Author)) {
+                $where[] = ' authorID = '.$this->db->pdb($Author->id());
+            }else{
+                $where[] = ' authorID IS NULL ';
+            }
+        }
     
 	    // sort
 	    if (isset($opts['sort'])) {
@@ -390,7 +414,7 @@ class PerchBlog_Posts extends PerchAPI_Factory
 	    }
     
 	    if (isset($opts['sort-order']) && $opts['sort-order']=='RAND') {
-            $order[] = 'RAND()';
+            $order = array('RAND()');
         }
     
 	    // limit
@@ -412,6 +436,11 @@ class PerchBlog_Posts extends PerchAPI_Factory
 	        
 	        // Paging
 	        $Paging = $this->api->get('Paging');
+
+            if (isset($opts['pagination-var']) && $opts['pagination-var']!='') {
+                $Paging->set_qs_param($opts['pagination-var']);
+            }
+
 	        if ((!isset($count) || !$count) || (isset($opts['start']) && $opts['start']!='')) {
 	            $Paging->disable();
 	        }else{
@@ -544,10 +573,14 @@ class PerchBlog_Posts extends PerchAPI_Factory
 	    }
 	    
 	    // template
-	    if (isset($opts['template'])) {
+	    if (isset($opts['template']) && $opts['template']!=false) {
 	        $template = 'blog/'.str_replace('blog/', '', $opts['template']);
 	    }else{
-	        $template = 'blog/post.html';
+            if (PerchUtil::count($posts)==1) {
+                $template = 'blog/'.$posts[0]->postTemplate();
+            }else{
+                $template = 'blog/post.html';    
+            }
 	    }
 	    
 	    if (isset($Paging) && $Paging->enabled()) {

@@ -33,7 +33,7 @@
     {
         $opts = array(
                 'count'=>$count,
-                'template'=>'blog/post_in_list.html',
+                'template'=>'post_in_list.html',
                 'sort'=>'postDateTime',
                 'sort-order'=>'DESC'
             );
@@ -48,7 +48,7 @@
         $id_or_slug = rtrim($id_or_slug, '/');
 
         $opts = array(
-            'template'=>'blog/post.html'
+            'template'=>false
             );
 
         if (is_numeric($id_or_slug)) {
@@ -180,15 +180,16 @@
         }
         
         $encode = true;
+        if ($field=='postDescHTML') $encode = false;
 
         if (is_object($Post)) {
             $field = $Post->$field();
             if (is_array($field)) {
-                if (isset($field['_default'])) {
-                    $r = $field['_default'];
-                }elseif (isset($field['processed'])) {
+                if (isset($field['processed'])) {
                     $r = $field['processed'];
                     $encode = false;
+                }elseif (isset($field['_default'])) {
+                    $r = $field['_default'];
                 }else{
                     $r = $field;
                 }
@@ -215,12 +216,41 @@
      * @param string $template template to render the categories
      * @param bool $return if set to true returns the output rather than echoing it
      */
-    function perch_blog_post_categories($id_or_slug, $template='post_category_link.html',$return=false)
+    function perch_blog_post_categories($id_or_slug, $opts='post_category_link.html', $return=false)
     {
         $id_or_slug = rtrim($id_or_slug, '/');
 
-        $cache_key = 'perch_blog_post_categories'.md5($id_or_slug.$template);
-        $cache = PerchBlog_Cache::get_static($cache_key, 10);
+        $default_opts = array(
+            'template'             => 'post_category_link.html',
+            'skip-template'        => false,
+            'cache'                => true,
+        );
+
+        if (!is_array($opts)) {
+            $opts = array('template'=>$opts);
+        }
+
+        if (is_array($opts)) {
+            $opts = array_merge($default_opts, $opts);
+        }else{
+            $opts = $default_opts;
+        }
+
+        if ($opts['skip-template']) {
+            $return = true;
+        }
+
+        $cache = false;
+        $template = $opts['template'];
+
+        if ($opts['cache']) {
+            $cache_key = 'perch_blog_post_categories'.md5($id_or_slug.serialize($opts));
+            $cache = PerchBlog_Cache::get_static($cache_key, 10);
+
+            if ($opts['skip-template']) {
+                $cache = unserialize($cache);
+            }
+        }
 
         if ($cache) {
             if ($return) return $cache;
@@ -246,6 +276,21 @@
             $Categories = new PerchBlog_Categories();
             $cats   = $Categories->get_for_post($postID);
             
+            if ($opts['skip-template']) {
+
+                $out = array();
+                foreach($cats as $Cat) {
+                    $out[] = $Cat->to_array();
+                }
+
+                if ($opts['cache']) {
+                    PerchBlog_Cache::save_static($cache_key, serialize($out)); 
+                }
+
+                return $out;
+
+            }
+
             $Template = $API->get('Template');
             $Template->set('blog/'.$template, 'blog');
 
@@ -267,18 +312,48 @@
      * @param string $template template to render the tags
      * @param bool $return if set to true returns the output rather than echoing it
      */
-    function perch_blog_post_tags($id_or_slug, $template='post_tag_link.html',$return=false)
+    function perch_blog_post_tags($id_or_slug, $opts='post_tag_link.html', $return=false)
     {
         $id_or_slug = rtrim($id_or_slug, '/');
 
-        $cache_key = 'perch_blog_post_tags'.md5($id_or_slug.$template);
-        $cache = PerchBlog_Cache::get_static($cache_key, 10);
+        $default_opts = array(
+            'template'             => 'post_tag_link.html',
+            'skip-template'        => false,
+            'cache'                => true,
+        );
+
+        if (!is_array($opts)) {
+            $opts = array('template'=>$opts);
+        }
+
+        if (is_array($opts)) {
+            $opts = array_merge($default_opts, $opts);
+        }else{
+            $opts = $default_opts;
+        }
+
+        if ($opts['skip-template']) {
+            $return = true;
+        }
+
+        $cache = false;
+        $template = $opts['template'];
+
+        if ($opts['cache']) {
+            $cache_key = 'perch_blog_post_tags'.md5($id_or_slug.serialize($opts));
+            $cache = PerchBlog_Cache::get_static($cache_key, 10);
+
+            if ($opts['skip-template']) {
+                $cache = unserialize($cache);
+            }
+        }
+
+        
 
         if ($cache) {
             if ($return) return $cache;
             echo $cache; return '';
         }
-
 
         $API  = new PerchAPI(1.0, 'perch_blog');
         $BlogPosts = new PerchBlog_Posts($API);
@@ -297,6 +372,21 @@
         if ($postID!==false) {
             $Tags = new PerchBlog_Tags();
             $tags   = $Tags->get_for_post($postID);
+
+            if ($opts['skip-template']) {
+
+                $out = array();
+                foreach($tags as $Tag) {
+                    $out[] = $Tag->to_array();
+                }
+
+                if ($opts['cache']) {
+                    PerchBlog_Cache::save_static($cache_key, serialize($out)); 
+                }
+
+                return $out;
+
+            }
             
             $Template = $API->get('Template');
             $Template->set('blog/'.$template, 'blog');
@@ -319,6 +409,11 @@
         $API  = new PerchAPI(1.0, 'perch_blog');
         
         $BlogPosts = new PerchBlog_Posts($API);
+
+        // tidy
+        if (isset($opts['category']) && !is_array($opts['category'])) $opts['category'] = rtrim($opts['category'], '/');
+        if (isset($opts['tag']) && !is_array($opts['tag'])) $opts['tag'] = rtrim($opts['tag'], '/');
+        if (isset($opts['pagination_var'])) $opts['pagination-var'] = $opts['pagination_var']; 
         
         $r = $BlogPosts->get_custom($opts);
         
@@ -333,10 +428,35 @@
      * @param string $template
      * @param bool $return if set to true returns the output rather than echoing it
      */
-    function perch_blog_categories($template='category_link.html', $return=false)
+    function perch_blog_categories($opts='category_link.html', $return=false)
     {
-        $cache_key = 'perch_blog_categories'.md5($template);
-        $cache = PerchBlog_Cache::get_static($cache_key, 10);
+        $default_opts = array(
+            'template'             => 'category_link.html',
+            'skip-template'        => false,
+            'cache'                => true,
+            'include-empty'        => false,
+            'filter'               => false,
+
+        );
+
+        if (!is_array($opts)) {
+            $opts = array('template'=>$opts);
+        }
+
+        if (is_array($opts)) {
+            $opts = array_merge($default_opts, $opts);
+        }else{
+            $opts = $default_opts;
+        }
+
+        if ($opts['skip-template']) $return = true;
+
+        $cache = false;
+
+        if ($opts['cache']) {
+            $cache_key  = 'perch_blog_categories'.md5(serialize($opts));
+            $cache      = PerchBlog_Cache::get_static($cache_key, 10);
+        }
 
         if ($cache) {
             if ($return) return $cache;
@@ -348,14 +468,10 @@
         $BlogPosts = new PerchBlog_Posts($API);
         
         $Categories = new PerchBlog_Categories();
-        $cats       = $Categories->all_in_use();
-        
-        $Template = $API->get('Template');
-        $Template->set('blog/'.$template, 'blog');
+        $r      = $Categories->get_custom($opts);
+  
 
-        $r = $Template->render_group($cats, true);
-
-        if ($r!='') PerchBlog_Cache::save_static($cache_key, $r);
+        if ($r!='' && $opts['cache']) PerchBlog_Cache::save_static($cache_key, $r);
         
         if ($return) return $r;
         echo $r;
@@ -380,7 +496,7 @@
 
         if ($cache) {
             if ($return) return $cache;
-            echo $cache;  return '';
+            echo PerchUtil::html($cache);  return '';
         }
 
         $API  = new PerchAPI(1.0, 'perch_blog');
@@ -394,7 +510,7 @@
             if ($r!='') PerchBlog_Cache::save_static($cache_key, $r);
 
             if ($return) return $r;
-            echo $r;
+            echo PerchUtil::html($r);
         }
         
         return false;
@@ -434,6 +550,41 @@
         
         return false;
     }
+
+    /**
+     * Get a tag title from its slug
+     * @param  [type]  $tagSlug [description]
+     * @param  boolean $return  [description]
+     * @return [type]           [description]
+     */
+    function perch_blog_tag($tagSlug, $return=false)
+    {
+        $tagSlug = rtrim($tagSlug, '/');
+        
+        $cache_key = 'perch_blog_tag'.md5($tagSlug);
+        $cache = PerchBlog_Cache::get_static($cache_key, 10);
+
+        if ($cache) {
+            if ($return) return $cache;
+            echo PerchUtil::html($cache);  return '';
+        }
+
+        $API  = new PerchAPI(1.0, 'perch_blog');
+        $Tags = new PerchBlog_Tags($API);
+        
+        $Tag = $Tags->find_by_slug($tagSlug);
+        
+        if (is_object($Tag)){
+            $r = $Tag->tagTitle();
+
+            if ($r!='') PerchBlog_Cache::save_static($cache_key, $r);
+
+            if ($return) return $r;
+            echo PerchUtil::html($r);
+        }
+        
+        return false;
+    }
     
     /**
      * 
@@ -441,11 +592,38 @@
      * @param string $template
      * @param bool $return if set to true returns the output rather than echoing it
      */
-    function perch_blog_date_archive_years($template='year_link.html', $return=false)
+    function perch_blog_date_archive_years($opts='year_link.html', $return=false)
     {
+        $default_opts = array(
+            'template'             => 'year_link.html',
+            'skip-template'        => false,
+            'cache'                => true,
+        );
 
-        $cache_key = 'perch_blog_date_archive_years'.md5($template);
-        $cache = PerchBlog_Cache::get_static($cache_key, 10);
+        if (!is_array($opts)) {
+            $opts = array('template'=>$opts);
+        }
+
+        if (is_array($opts)) {
+            $opts = array_merge($default_opts, $opts);
+        }else{
+            $opts = $default_opts;
+        }
+
+        if ($opts['skip-template']) {
+            $return = true;
+        }
+
+        $cache = false;
+        $template = $opts['template'];
+
+        if ($opts['cache']) {
+            $cache_key = 'perch_blog_date_archive_years'.md5(serialize($opts));
+            $cache = PerchBlog_Cache::get_static($cache_key, 10);
+
+            if ($opts['skip-template']) $cache = unserialize($cache);
+        }
+        
 
         if ($cache) {
             if ($return) return $cache;
@@ -456,6 +634,11 @@
         $BlogPosts = new PerchBlog_Posts($API);
         
         $years = $BlogPosts->get_years();
+
+        if ($opts['skip-template']) {
+            if ($opts['cache']) PerchBlog_Cache::save_static($cache_key, serialize($years));
+            return $years;
+        }
         
         $Template = $API->get('Template');
         $Template->set('blog/'.$template, 'blog');
@@ -526,16 +709,179 @@
             $CurrentUser    = $Users->get_current_user();
             
             if (is_object($CurrentUser) && $CurrentUser->logged_in()) {
-                    
-                //$API  = new PerchAPI(1.0, 'perch_blog');
-                //$BlogPosts = new PerchBlog_Posts($API);
-                //
-                PerchUtil::debug('Entering preview mode');
-                
+                   
+                PerchUtil::debug('Entering preview mode');             
                 PerchBlog_posts::$preview_mode = true;
 
             }
         }
+    }
+
+    function perch_blog_authors($opts=array(), $return=false)
+    {
+        $default_opts = array(
+            'template'             => 'author_list.html',
+            'skip-template'        => false,
+            'cache'                => true,
+            'include-empty'        => false,
+            'filter'               => false,
+        );
+
+        if (is_array($opts)) {
+            $opts = array_merge($default_opts, $opts);
+        }else{
+            $opts = $default_opts;
+        }
+
+        if ($opts['skip-template']) $return = true;
+
+        $cache = false;
+
+        if ($opts['cache']) {
+            $cache_key  = 'perch_blog_authors'.md5(serialize($opts));
+            $cache      = PerchBlog_Cache::get_static($cache_key, 10);
+        }
+
+        if ($cache) {
+            if ($return) return $cache;
+            echo $cache; return '';
+        }
+
+
+        $API  = new PerchAPI(1.0, 'perch_blog');
+        $Authors = new PerchBlog_Authors($API);
+        $r      = $Authors->get_custom($opts);
+  
+        if ($r!='' && $opts['cache']) PerchBlog_Cache::save_static($cache_key, $r);
+        
+        if ($return) return $r;
+        echo $r;
+        
+        return false;
+    }
+
+    function perch_blog_author($id_or_slug, $opts=array(), $return=false)
+    {
+        $id_or_slug = rtrim($id_or_slug, '/');
+
+        $default_opts = array(
+            'template'             => 'author.html',
+            'skip-template'        => false,
+            'cache'                => true,
+        );
+
+        if (is_array($opts)) {
+            $opts = array_merge($default_opts, $opts);
+        }else{
+            $opts = $default_opts;
+        }
+
+        if ($opts['skip-template']) $return = true;
+
+        $cache = false;
+
+        if ($opts['cache']) {
+            $cache_key  = 'perch_blog_author'.md5($id_or_slug.serialize($opts));
+            $cache      = PerchBlog_Cache::get_static($cache_key, 10);
+        }
+
+        if ($cache) {
+            if ($return) return $cache;
+            echo $cache; return '';
+        }
+
+        $API  = new PerchAPI(1.0, 'perch_blog');
+        $Authors = new PerchBlog_Authors;
+
+        if (is_numeric($id_or_slug)) {
+            $Author = $Authors->find($id_or_slug);
+        }else{
+            $Author = $Authors->find_by_slug($id_or_slug);
+        }
+
+        if (is_object($Author)) {
+
+            if ($opts['skip-template']) {
+                return $Author->to_array();
+            }
+
+            $Template = $API->get('Template');
+            $Template->set('blog/'.$opts['template'], 'blog');
+
+            $r = $Template->render($Author);
+
+            if ($r!='') PerchBlog_Cache::save_static($cache_key, $r);
+            
+            if ($return) return $r;
+            echo $r;
+        }
+    
+
+        return false;
+    }
+
+    function perch_blog_author_for_post($id_or_slug, $opts=array(), $return=false)
+    {
+        $id_or_slug = rtrim($id_or_slug, '/');
+
+        $default_opts = array(
+            'template'             => 'author.html',
+            'skip-template'        => false,
+            'cache'                => true,
+        );
+
+        if (is_array($opts)) {
+            $opts = array_merge($default_opts, $opts);
+        }else{
+            $opts = $default_opts;
+        }
+
+        if ($opts['skip-template']) $return = true;
+
+        $cache = false;
+
+        if ($opts['cache']) {
+            $cache_key  = 'perch_blog_author_for_post'.md5($id_or_slug.serialize($opts));
+            $cache      = PerchBlog_Cache::get_static($cache_key, 10);
+        }
+
+        if ($cache) {
+            if ($return) return $cache;
+            echo $cache; return '';
+        }
+
+        $API  = new PerchAPI(1.0, 'perch_blog');
+        $BlogPosts = new PerchBlog_Posts($API);
+
+        if (is_numeric($id_or_slug)) {
+            $Post = $BlogPosts->find($id_or_slug);
+        }else{
+            $Post = $BlogPosts->find_by_slug($id_or_slug);
+        }
+
+        if (is_object($Post)) {
+            $Authors = new PerchBlog_Authors;
+            $Author = $Authors->find($Post->authorID());
+
+            if (is_object($Author)) {
+
+                if ($opts['skip-template']) {
+                    return $Author->to_array();
+                }
+
+                $Template = $API->get('Template');
+                $Template->set('blog/'.$opts['template'], 'blog');
+
+                $r = $Template->render($Author);
+
+                if ($r!='') PerchBlog_Cache::save_static($cache_key, $r);
+                
+                if ($return) return $r;
+                echo $r;
+            }
+        }
+
+        return false;
     }
 
 ?>
