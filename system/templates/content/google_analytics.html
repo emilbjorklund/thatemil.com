@@ -6,5 +6,12 @@
 
   ga('create', '<perch:content id="uacode" type="text" label="Web property ID" help="UA-XXXXX-X" />', 'thatemil.com');
   ga('send', 'pageview');
+  setTimeout(function () {
+  	window.onscroll = function () {
+  		var ga = ga || function () {};
+  		window.onscroll = null;
+  		ga('send', 'event' , 'scroll', 'read');
+  	}
+  }, 5000);
 
 </script>
