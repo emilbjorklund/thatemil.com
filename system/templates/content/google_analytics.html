@@ -8,7 +8,7 @@
   ga('send', 'pageview');
   setTimeout(function () {
   	window.onscroll = function () {
-  		var ga = ga || function () {};
+  		var ga = window.ga || function () {};
   		window.onscroll = null;
   		ga('send', 'event' , 'scroll', 'read');
   	}
