@@ -84,6 +84,9 @@ pre {
 pre code {
 	padding: 0;
 }
+blockquote {
+	font-style: italic;
+}
 
 main,article,section,header,footer,figure,figcaption {
 	display: block;
@@ -426,10 +429,17 @@ main,article,section,header,footer,figure,figcaption {
 	font-style: italic;
 	font-weight: 200;
 	color: #666;
+	padding-top: 1em;
 }
 .sidebar-quote p {
 	font-size: inherit;
 	font-style: inherit;
+}
+.sidebar-quote p em {
+	color: #888;
+}
+.sidebar-quote cite {
+	font-size: 80%;
 }
 /* @end Sidebars */
 
