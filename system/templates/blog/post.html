@@ -1,14 +1,14 @@
-<article class="entry entry-single flow wf">
+<article class="entry h-entry entry-single flow wf">
     <header class="entry-header">
-        <h1 class="hd-entry"><perch:blog id="postTitle" type="text" size="xl" /></h1>
+        <h1 class="hd-entry p-name"><perch:blog id="postTitle" type="text" size="xl" /></h1>
         <p class="entry-meta entry-date">
-            <time datetime="<perch:blog id="postDateTime" format="%Y-%m-%dT%H:%M+01:00" />">
-            Published by Emil Björklund on <a class="entry-month" rel="directory" href="/blog/<perch:blog id="postDateTime" format="%Y/%m/%d" />/"><perch:blog id="postDateTime" format="%d" /></a> <a class="entry-day" rel="directory" href="/blog/<perch:blog id="postDateTime" format="%Y/%m" />/"><perch:blog id="postDateTime" format="%B" /></a>, <a rel="directory" class="entry-year" href="/blog/<perch:blog id="postDateTime" format="%Y" />/"><perch:blog id="postDateTime" format="%Y" /></a>, at <perch:blog id="postDateTime" format="%H:%M %p" />
+            <time class="dt-published" datetime="<perch:blog id="postDateTime" format="%Y-%m-%dT%H:%M+01:00" />">
+            Published by <span class="p-author h-card">Emil Björklund</span> on <a class="entry-month" rel="directory" href="/blog/<perch:blog id="postDateTime" format="%Y/%m/%d" />/"><perch:blog id="postDateTime" format="%d" /></a> <a class="entry-day" rel="directory" href="/blog/<perch:blog id="postDateTime" format="%Y/%m" />/"><perch:blog id="postDateTime" format="%B" /></a>, <a rel="directory" class="entry-year" href="/blog/<perch:blog id="postDateTime" format="%Y" />/"><perch:blog id="postDateTime" format="%Y" /></a>, at <perch:blog id="postDateTime" format="%H:%M %p" />
             </time> 
         </p>
     </header>
 	
-    <section class="entry-body">
+    <section class="entry-body e-content">
         <perch:blog id="image" type="image" label="Image" quality="55" suppress="true" />
         <perch:if exists="image">
         <figure class="entry-figure">

@@ -1,10 +1,10 @@
-<li class="entry">
+<li class="entry h-entry">
     
-    <h2 class="hd-entry wf"><a href="<perch:blog id="postURL" />" rel="bookmark" class="entry-title"><perch:blog id="postTitle" /></a></h2>
+    <h2 class="hd-entry p-name wf"><a class="u-url" href="<perch:blog id="postURL" />" rel="bookmark" class="entry-title"><perch:blog id="postTitle" /></a></h2>
 
-    <p class="entry-date entry-meta"><time datetime="<perch:blog id="postDateTime" format="%Y-%m-%dT%H:%M+01:00" />"><perch:blog id="postDateTime" format="%d %B %Y" /></time></p>
+    <p class="entry-date entry-meta"><time class="dt-published" datetime="<perch:blog id="postDateTime" format="%Y-%m-%dT%H:%M+01:00" />"><perch:blog id="postDateTime" format="%d %B %Y" /></time></p>
     
-    <div class="entry-summary entry-body wf">
+    <div class="entry-summary p-summary wf">
     
     <perch:if exists="image">
     <figure class="entry-figure">
@@ -14,7 +14,7 @@
     
     <perch:if exists="excerpt">
     <perch:blog id="excerpt" type="textarea" markdown="true" />
-    <p><a href="<perch:blog id="postURL" />">Read the whole post &quot;<perch:blog id="postTitle" />&quot;</a></p>
+    <p><a class="u-url" href="<perch:blog id="postURL" />">Read the whole post &quot;<perch:blog id="postTitle" />&quot;</a></p>
     
     <perch:else />
     <perch:if exists="postLedeHTML">
