@@ -164,7 +164,6 @@ main,article,section,header,footer,figure,figcaption {
 .site-header a {
 	text-decoration: none;
 	color: #7b999f;
-	-webkit-perspective: 400px;
 }
 .site-header img {
 	-webkit-border-radius: 50%;
@@ -175,7 +174,6 @@ main,article,section,header,footer,figure,figcaption {
 	margin: -0.2em 0.5em 0 0;
 	height: 1em;
 	width: auto;
-	box-shadow: 0 0 0 2px #7B999F;
 }
 
 /* @end Site header */
