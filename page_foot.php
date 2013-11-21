@@ -6,8 +6,8 @@
 		</footer>
 	</div><!-- /.wrap -->
 	
-	<script src="/assets/js/global.min.js"></script>
-	<script src="/assets/js/prism.js"></script>
+	<script async src="/assets/js/global.min.js"></script>
+	<script async src="/assets/js/prism.js"></script>
 	<script>
 		var s = '/assets/css/prism.css',
 			d = document,
