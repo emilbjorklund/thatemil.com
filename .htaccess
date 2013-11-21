@@ -4,9 +4,19 @@
 
 # AddEncoding gzip svgz
 
-<filesMatch ".(jpg|jpeg|png|gif|swf|svg|svgz)$">
+<filesMatch ".(jpg|ico|jpeg|css|js|png|gif|swf|svg|svgz)$">
 Header set Cache-Control "max-age=29030400, public"
 </filesMatch>
+
+# 2 DAYS
+<FilesMatch "\.(xml|txt)$">
+Header set Cache-Control "max-age=172800, public, must-revalidate"
+</FilesMatch>
+ 
+# 2 HOURS
+<FilesMatch "\.(html|htm|php)$">
+Header set Cache-Control "max-age=7200, must-revalidate"
+</FilesMatch>
 
 <IfModule mod_expires.c>
 ExpiresActive On 
