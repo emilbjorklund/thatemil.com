@@ -17,7 +17,7 @@
 
     if ($file) {
 
-        $results = $BlogUtil->import_from_posterous($file);
+        $results = $BlogUtil->import_from_posterous($file, null, null, $sectionID);
 
         if (PerchUtil::count($results)) {
             echo '<ul class="importables">';

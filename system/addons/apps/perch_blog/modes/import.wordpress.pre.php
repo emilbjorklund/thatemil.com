@@ -17,6 +17,12 @@
     	$format = $_GET['format'];
     }
    	
+    if (isset($_GET['section'])) {
+        $sectionID = (int)$_GET['section'];
+    }else{
+        $sectionID = 1;
+    }
+    
 
 
 

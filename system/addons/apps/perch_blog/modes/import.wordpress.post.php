@@ -19,7 +19,7 @@
 
     if ($file) {
 
-        $results = $BlogUtil->import_from_wp($file, $format);
+        $results = $BlogUtil->import_from_wp($file, $format, null, $sectionID);
 
         if (PerchUtil::count($results)) {
             echo '<ul class="importables">';

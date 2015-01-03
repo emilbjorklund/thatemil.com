@@ -17,7 +17,7 @@
 
     if ($Form->submitted()) {
     	        
-        $postvars = array('file','format','type');
+        $postvars = array('file','format','type', 'section');
 		
     	$data = $Form->receive($postvars);
 

@@ -7,6 +7,7 @@
     $Paging->set_per_page(20);
     
     $Comments = new PerchBlog_Comments($API);
+    $Posts = new PerchBlog_Posts($API);
 
 
 	$Form = $API->get('Form');
@@ -17,8 +18,23 @@
         if (PerchUtil::count($comments)) {
             $status = $_POST['commentStatus'];
             foreach($comments as $commentID) {
+
                 $Comment = $Comments->find($commentID);
-                $Comment->set_status($status);
+
+                if ($status == 'DELETE') {
+                    
+                    // was the comment live? If so update the post's comment count.
+                    if ($Comment->commentStatus()=='LIVE') {
+                        $Post = $Posts->find($Comment->postID());
+                        if ($Post) $Post->update_comment_count();
+                    }
+
+                    $Comment->delete();
+                }else{
+                    $Comment->set_status($status);
+                }
+                
+                
             }
 
 

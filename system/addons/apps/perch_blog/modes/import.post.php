@@ -49,6 +49,18 @@
 echo $Form->hint('If you have a lot of content to import, you expect this to take a little while.');
         
         echo $Form->select_field('format', 'Format posts as', $opts, '');
+
+
+        $Sections = new PerchBlog_Sections;
+        $sections = $Sections->all();
+        if (PerchUtil::count($sections)>1) {
+            $opts = array();
+            foreach($sections as $section) {
+                $opts[] = array('label'=>$section->sectionTitle(), 'value'=>$section->id());        
+            }  
+            echo $Form->select_field('section', 'Section', $opts, '');  
+        }
+
         
 
 

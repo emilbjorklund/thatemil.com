@@ -1,19 +1,27 @@
 <?php
 
-class PerchBlog_Categories extends PerchAPI_Factory
+class PerchBlog_Sections extends PerchAPI_Factory
 {
-    protected $table     = 'blog_categories';
-	protected $pk        = 'categoryID';
-	protected $singular_classname = 'PerchBlog_Category';
+    protected $table     = 'blog_sections';
+	protected $pk        = 'sectionID';
+	protected $singular_classname = 'PerchBlog_Section';
 	
-	protected $default_sort_column = 'categoryTitle';
+	protected $default_sort_column = 'sectionTitle';
 
-	public $static_fields   = array('categoryTitle', 'categorySlug', 'categoryPostCount');
+	public $static_fields   = array('sectionTitle', 'sectionSlug', 'sectionPostCount');
 
 	
+    public function find_by_given($id_or_slug)
+    {
+        if (is_numeric($id_or_slug)) {
+            return $this->find($id_or_slug);
+        }
+
+        return $this->find_by_slug($id_or_slug);
+    }
 	
 	/**
-	 * Find a category by its categorySlug
+	 * Find a section by its sectionSlug
 	 *
 	 * @param string $slug 
 	 * @return void
@@ -23,7 +31,7 @@ class PerchBlog_Categories extends PerchAPI_Factory
     {
         $sql    = 'SELECT * 
                     FROM ' . $this->table . '
-                    WHERE categorySlug='. $this->db->pdb($slug) .'
+                    WHERE sectionSlug='. $this->db->pdb($slug) .'
                     LIMIT 1';
                     
         $result = $this->db->get_row($sql);
@@ -34,44 +42,15 @@ class PerchBlog_Categories extends PerchAPI_Factory
         
         return false;
     }
-    
-	
-	/**
-	 * fetch the posts for a given category
-	 * @param int $postID
-	 */
-	public function get_for_post($postID)
-	{
-	    $Cache = PerchBlog_Cache::fetch();
-	    
-	    if ($Cache->exists('cats_for_post'.$postID)) {
-	        return $Cache->get('cats_for_post'.$postID);
-	    }else{
-	        $sql = 'SELECT c.*
-    	            FROM '.$this->table.' c, '.PERCH_DB_PREFIX.'blog_posts_to_categories p2c
-    	            WHERE c.categoryID=p2c.categoryID
-    	                AND p2c.postID='.$this->db->pdb($postID);
-    	    $rows   = $this->db->get_rows($sql);
-
-    	    $r = $this->return_instances($rows);
-    	    
-    	    $Cache->set('cats_for_post'.$postID, $r);
-    	    
-    	    return $r;
-	    }
-	    
-	    return false;
-	}
-	
-	
+    	
 	/**
 	 * 
-	 * retrieves all categories used by blog posts along with a count of number of posts for each category.
+	 * retrieves all sections used by blog posts along with a count of number of posts for each section.
 	 */
 	 public function all_in_use() {
-		$sql = 'SELECT categoryID, categoryTitle, categorySlug, categoryPostCount, categoryPostCount AS qty, categoryDynamicFields
-                FROM '.PERCH_DB_PREFIX.'blog_categories WHERE categoryPostCount>0 
-                ORDER BY categoryTitle ASC';
+		$sql = 'SELECT sectionID, sectionTitle, sectionSlug, sectionPostCount, sectionPostCount AS qty, sectionDynamicFields
+                FROM '.PERCH_DB_PREFIX.'blog_sections WHERE sectionPostCount>0 
+                ORDER BY sectionTitle ASC';
 		
 		$rows   = $this->db->get_rows($sql);
 
@@ -85,18 +64,18 @@ class PerchBlog_Categories extends PerchAPI_Factory
 		$API = new PerchAPI(1.0, 'perch_blog');
 
 		if ($opts['include-empty']) {
-			$sql = 'SELECT *, categoryID AS _id, categoryPostCount as qty FROM '.$this->table.' ORDER BY categoryTitle ASC';
+			$sql = 'SELECT *, sectionID AS _id, sectionPostCount as qty FROM '.$this->table.' ORDER BY sectionTitle ASC';
 		}else{
-			$sql = 'SELECT *, categoryID AS _id, categoryPostCount as qty FROM '.$this->table.' WHERE categoryPostCount>0 ORDER BY categoryTitle ASC';
+			$sql = 'SELECT *, sectionID AS _id, sectionPostCount as qty FROM '.$this->table.' WHERE sectionPostCount>0 ORDER BY sectionTitle ASC';
 		}
 
 		$rows   = $this->db->get_rows($sql);
-		$cats 	= $this->return_instances($rows);
+		$sections 	= $this->return_instances($rows);
 
 		$content = array();
 
-        if (PerchUtil::count($cats)) {
-            foreach($cats as $Cat) $content[] = $Cat->to_array();    
+        if (PerchUtil::count($sections)) {
+            foreach($sections as $Section) $content[] = $Section->to_array();    
         }
 		
 		
@@ -240,8 +219,8 @@ class PerchBlog_Categories extends PerchAPI_Factory
 
         	$Paging = $API->get('Paging');
 
-            if (isset($opts['pagination_var'])) {
-                $Paging->set_qs_param($opts['pagination_var']);
+            if (isset($opts['pagination-var'])) {
+                $Paging->set_qs_param($opts['pagination-var']);
             }
             
             $Paging->set_per_page(isset($opts['count'])?(int)$opts['count']:10);
@@ -384,18 +363,18 @@ class PerchBlog_Categories extends PerchAPI_Factory
 
 	public function find_or_create($slug, $title)
 	{
-		$sql = 'SELECT * FROM '.$this->table.' WHERE categorySlug='.$this->db->pdb($slug).' LIMIT 1';
+		$sql = 'SELECT * FROM '.$this->table.' WHERE sectionSlug='.$this->db->pdb($slug).' LIMIT 1';
 		$row = $this->db->get_row($sql);
 
 		if (PerchUtil::count($row)) {
 			return $this->return_instance($row);
 		}
 
-		// category wasn't found, so create a new one and return it.
+		// section wasn't found, so create a new one and return it.
 
 		$data = array();
-		$data['categorySlug'] = $slug;
-		$data['categoryTitle'] = $title;
+		$data['sectionSlug'] = $slug;
+		$data['sectionTitle'] = $title;
 
 		return $this->create($data);
 
@@ -403,17 +382,22 @@ class PerchBlog_Categories extends PerchAPI_Factory
 
 	public function update_post_counts()
     {
-    	$sql = 'SELECT c.categoryID, COUNT(p2c.postID) AS qty
-                FROM '.PERCH_DB_PREFIX.'blog_categories c, '.PERCH_DB_PREFIX.'blog_posts_to_categories p2c, '.PERCH_DB_PREFIX.'blog_posts p
-                WHERE p2c.categoryID=c.categoryID AND p2c.postID=p.postID
+    	$sql = 'SELECT c.sectionID, COUNT(p.postID) AS qty
+                FROM '.PERCH_DB_PREFIX.'blog_sections c, '.PERCH_DB_PREFIX.'blog_posts p
+                WHERE c.sectionID=p.sectionID
                     AND p.postStatus=\'Published\' AND p.postDateTime<='.$this->db->pdb(date('Y-m-d H:i:00')).' 
-                GROUP BY c.categoryID
-                ORDER BY c.categoryTitle ASC';
+                GROUP BY c.sectionID
+                ORDER BY c.sectionTitle ASC';
         $rows = $this->db->get_rows($sql);
 
         if (PerchUtil::count($rows)) {
+
+            // reset counts to zero
+            $sql = 'UPDATE '.PERCH_DB_PREFIX.'blog_sections SET sectionPostCount=0';
+            $this->db->execute($sql);
+
         	foreach($rows as $row) {
-        		$sql = 'UPDATE '.PERCH_DB_PREFIX.'blog_categories SET categoryPostCount='.$this->db->pdb($row['qty']).' WHERE categoryID='.$this->db->pdb($row['categoryID']).' LIMIT 1';
+        		$sql = 'UPDATE '.PERCH_DB_PREFIX.'blog_sections SET sectionPostCount='.$this->db->pdb($row['qty']).' WHERE sectionID='.$this->db->pdb($row['sectionID']).' LIMIT 1';
         		$this->db->execute($sql);
         	}
         }
@@ -439,5 +423,3 @@ class PerchBlog_Categories extends PerchAPI_Factory
         return $val;
     }
 }
-
-?>

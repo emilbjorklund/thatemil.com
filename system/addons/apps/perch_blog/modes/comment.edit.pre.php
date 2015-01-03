@@ -7,6 +7,7 @@
     $message = false;
 
     $Comments = new PerchBlog_Comments;
+    $Posts = new PerchBlog_Posts;
     include(realpath('.').'/../../PerchBlog_Akismet.class.php');
 
 
@@ -31,20 +32,36 @@
     $Form->set_required_fields_from_template($Template);
 
      if ($Form->submitted()) {
- 		$postvars = array('commentName','commentEmail', 'commentHTML', 'commentStatus', 'commentDateTime', 'commentURL');
+ 		$postvars = array('perch_commentName', 'perch_commentEmail', 'perch_commentHTML', 'commentStatus', 'perch_commentDateTime', 'perch_commentURL');
 
      	$data = $Form->receive($postvars);
+
+        if (PerchUtil::count($data)) 
+        foreach($data as $key=>$val) {
+            if (strpos($key, 'perch_')===0) {
+                $data[str_replace('perch_', '', $key)] = $val;
+                unset($data[$key]);
+            }
+        }
 
         $dynamic_fields = $Form->receive_from_template_fields($Template, $details);
         $data['commentDynamicFields'] = PerchUtil::json_safe_encode($dynamic_fields);
 
         if ($Comment->commentStatus()!=$data['commentStatus']) {
             // status has changed
-             
+            
+            // was the comment live? If so update the post's comment count.
+            if ($Comment->commentStatus()=='LIVE') {
+                $Post = $Posts->find($Comment->postID());
+                if ($Post) $Post->update_comment_count();
+            }
+
+
             $Comment->set_status($data['commentStatus']);           
             
         }
 
+        PerchUtil::debug($data);
 
         $Comment->update($data);
 
