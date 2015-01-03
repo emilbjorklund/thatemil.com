@@ -443,7 +443,7 @@ main,article,section,header,footer,figure,figcaption {
 
 /* @group Figures */
 figure {
-	margin: 0;
+	margin: 0 0 1.5em;
 	padding: 0;
 }
 .figure {
